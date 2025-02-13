@@ -24,6 +24,7 @@ module wealthgod::wealthgod {
 public struct User has key{
     id: UID,
     sendAmount: u64,
+    claimAmount: u64,
 }
 
 //event struct
@@ -47,16 +48,17 @@ public struct WeathPool has key{
 fun init(ctx: &mut TxContext){
     transfer::share_object(WeathPool{
         id: object::new(ctx),
-        receiver: tx_context::sender(ctx),
+        receiver: ctx.sender(),
         sender: ctx.sender(),
         amount:  balance::zero(),
     });
 }   
 
 //function  发多少钱前端控制
-public entry fun createWealthGod(coin:Coin<SUI>, image: String, ctx: &mut TxContext) {
+public entry fun createWealthGod(coin:Coin<SUI>, image: String, user:&mut User,ctx: &mut TxContext) {
     let amount = coin::into_balance(coin);
-    assert!(amount.value() > 0,0);
+    let value = amount.value();
+    assert!(value > 0,0);
     let uid = object::new(ctx);
     let id = object::uid_to_inner(&uid);
     let sender = tx_context::sender(ctx);
@@ -67,13 +69,14 @@ public entry fun createWealthGod(coin:Coin<SUI>, image: String, ctx: &mut TxCont
         amount,
         image,
     };
+    user.sendAmount = user.sendAmount + value;
     event::emit(WealthGodCreated{
             id,
             sender,
     });
     transfer::share_object(wealthGod);
 }
-public entry fun claimWealthGod(wealthGod:&mut WealthGod,amount:&mut Coin<SUI>,random:&Random,pool:&mut WeathPool,ctx: &mut TxContext){
+public entry fun claimWealthGod(wealthGod:&mut WealthGod,amount:&mut Coin<SUI>,random:&Random,pool:&mut WeathPool,user:&mut User,ctx: &mut TxContext){
          //待改
         let min:u64  = 3;
         let max:u64  = 25;
@@ -87,6 +90,7 @@ public entry fun claimWealthGod(wealthGod:&mut WealthGod,amount:&mut Coin<SUI>,r
         pool.amount.join(max_amount);
         let recevicer_coin = coin::take(&mut pool.amount,claim_amount,ctx);
         let sender_coin = coin::from_balance(balance::withdraw_all(&mut pool.amount),ctx);
+        user.claimAmount = user.claimAmount + claim_amount;
         transfer::public_transfer(wealth_god_coin,pool.receiver);
         transfer::public_transfer(recevicer_coin,pool.receiver);
         transfer::public_transfer(sender_coin,pool.sender);
