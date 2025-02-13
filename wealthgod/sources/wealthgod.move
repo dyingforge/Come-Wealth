@@ -14,7 +14,6 @@ module wealthgod::wealthgod {
   use sui::random::{Random,Self};
   use sui::table::{Self, Table};
 
-  const EProfileExist: u64 = 2;
 //strcut
 public struct WealthGod has key{
     id: UID,
@@ -80,7 +79,7 @@ public entry fun create_profile(
 ) {
     let uid = object::new(ctx);
     let owner = ctx.sender();
-    assert!(!table::contains(&state.profiles, owner), EProfileExist);
+    assert!(!table::contains(&state.profiles, owner), 3);
     let sendAmount = 0;
     let claimAmount = 0;
     let id = object::uid_to_inner(&uid);
