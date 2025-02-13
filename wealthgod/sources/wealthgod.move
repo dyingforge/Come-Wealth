@@ -19,6 +19,7 @@ module wealthgod::wealthgod {
 public struct WealthGod has key{
     id: UID,
     sender: address,
+    description: String,
     isclaimed: bool,
     amount: Balance<SUI>,
 }
@@ -31,6 +32,7 @@ public struct State has key{
 
 public struct Profile has key,store{
     id: UID,
+    name: String,
     sendAmount: u64,
     claimAmount: u64,
     wealthGods: vector<address>,
@@ -39,8 +41,6 @@ public struct Profile has key,store{
 //字段待补充
 public struct WeathPool has key{
     id:UID,
-    receiver:address,
-    sender:address,
     amount:Balance<SUI>,
 }
 
@@ -62,8 +62,6 @@ public struct ProfileCreated has copy, drop {
 fun init(ctx: &mut TxContext){
     transfer::share_object(WeathPool{
         id: object::new(ctx),
-        receiver: ctx.sender(),
-        sender: ctx.sender(),
         amount:  balance::zero(),
     });
 
@@ -77,6 +75,7 @@ fun init(ctx: &mut TxContext){
 
 public entry fun create_profile(
     state: &mut State,
+    name: String,
     ctx: &mut TxContext,
 ) {
     let uid = object::new(ctx);
@@ -87,6 +86,7 @@ public entry fun create_profile(
     let id = object::uid_to_inner(&uid);
     let new_profile = Profile {
         id: uid,
+        name,
         sendAmount,
         claimAmount,
         wealthGods: vector::empty(),
@@ -96,8 +96,8 @@ public entry fun create_profile(
     event::emit(ProfileCreated { id, owner });
 }
 
-//function  发多少钱前端控制
-public entry fun createWealthGod(coin:&mut Coin<SUI>, user:&mut Profile,ctx: &mut TxContext) {
+//function
+public entry fun createWealthGod(coin:&mut Coin<SUI>,description:String, user:&mut Profile,ctx: &mut TxContext) {
     let in_coin = coin::split(coin, 1000000000, ctx);
     let amount = coin::into_balance(in_coin);
     let value = amount.value();
@@ -110,6 +110,7 @@ public entry fun createWealthGod(coin:&mut Coin<SUI>, user:&mut Profile,ctx: &mu
         sender, 
         isclaimed: false,
         amount,
+        description,
     };
     user.sendAmount = user.sendAmount + value;
     event::emit(WealthGodCreated{
@@ -121,25 +122,26 @@ public entry fun createWealthGod(coin:&mut Coin<SUI>, user:&mut Profile,ctx: &mu
 }
 
 
-public entry fun claimWealthGod(wealthGod:&mut WealthGod,amount:&mut Coin<SUI>,pool:&mut WeathPool,user:&mut Profile,random:&Random,ctx: &mut TxContext){
+public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:&mut WeathPool,user:&mut Profile,random:&Random,ctx: &mut TxContext){
          //待改
         assert!(wealthGod.isclaimed == false,1);
         wealthGod.isclaimed = true;
+        assert!(in_coin.value() > 2500000000,2);
         let min:u64  = 300000000;
         let max:u64  = 2500000000; 
         let mut gen = random::new_generator(random, ctx);
         let claim_amount = random::generate_u64_in_range(&mut gen, min, max);
         //红包钱
-        let wealth_god_coin = coin::take(&mut wealthGod.amount,claim_amount,ctx);
+        let wealth_god_coin = coin::take(&mut wealthGod.amount,1000000000,ctx);
+        // let wealth_god_coin = coin::from_balance(wealthGod.amount, ctx);
         //最大值
-        let max_coin = coin::split(amount, max, ctx);
-        let max_amount = coin::into_balance(max_coin);
+        let max_amount = coin::into_balance(in_coin);
         pool.amount.join(max_amount);
-        let recevicer_coin = coin::take(&mut pool.amount,claim_amount,ctx);
-        let sender_coin = coin::from_balance(balance::withdraw_all(&mut pool.amount),ctx);
+        let sender_coin = coin::take(&mut pool.amount,claim_amount,ctx);
+        let recevicer_coin = coin::from_balance(balance::withdraw_all(&mut pool.amount),ctx);
         user.claimAmount = user.claimAmount + claim_amount;
-        transfer::public_transfer(wealth_god_coin,pool.receiver);
-        transfer::public_transfer(recevicer_coin,pool.receiver);
-        transfer::public_transfer(sender_coin,pool.sender);
+        transfer::public_transfer(wealth_god_coin,ctx.sender());
+        transfer::public_transfer(recevicer_coin,ctx.sender());
+        transfer::public_transfer(sender_coin,wealthGod.sender);
 }
 }
