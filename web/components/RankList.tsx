@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, Trophy, Medal } from 'lucide-react';
+import { Trophy, Medal } from 'lucide-react';
 
+// 数据结构定义
 interface LeaderboardItem {
-  id: number;
+  id: string; 
   name: string;
-  score: number;
+  amount: number;
 }
 
 interface LeaderboardProps {
@@ -14,38 +15,36 @@ interface LeaderboardProps {
 
 const Leaderboard: React.FC<LeaderboardProps> = ({ items }) => {
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-      <h2 className="text-2xl font-bold text-center py-4 bg-red-600 text-white">排行榜</h2>
-      <ul className="divide-y divide-gray-200">
-        {items.map((item, index) => (
+    <div className="w-full bg-white shadow-lg rounded-xl overflow-hidden">
+      <h2 className="text-2xl font-DynaPuff text-center py-5 bg-gradient-to-r from-red-500 via-pink-500 to-red-600 text-white rounded-t-xl">
+        RankList
+      </h2>
+      <ul className="divide-y divide-gray-300 w-full">
+        {items.slice(0, 5).map((item, index) => (
           <motion.li
-            key={item.id}
-            className="flex items-center p-4 hover:bg-gray-50"
+            key={index} 
+            className="flex items-center justify-between p-2 w-full"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <div className="flex-shrink-0 w-10 text-center">
+            <div className="text-left">
               {index < 3 ? (
                 index === 0 ? (
-                  <Trophy className="w-6 h-6 text-yellow-400 mx-auto" />
+                  <Trophy className="w-6 h-6 text-yellow-400" />
                 ) : index === 1 ? (
-                  <Medal className="w-6 h-6 text-gray-400 mx-auto" />
+                  <Medal className="w-6 h-6 text-gray-400" />
                 ) : (
-                  <Medal className="w-6 h-6 text-yellow-600 mx-auto" />
+                  <Medal className="w-6 h-6 text-yellow-600" />
                 )
               ) : (
-                <span className="text-gray-500 font-medium">{index + 1}</span>
+                <span className="text-gray-500  text-[20px] font-DynaPuff ml-2 mr-2">{index + 1}</span>
               )}
             </div>
-            <div className="flex-shrink-0 w-10 h-10 mr-4">
-                <User className="w-10 h-10 text-gray-400 bg-gray-200 rounded-full p-2" />
-            </div>
-            <div className="flex-grow">
-              <p className="text-sm font-medium text-gray-900">{item.name}</p>
-            </div>
-            <div className="flex-shrink-0 text-right">
-              <p className="text-sm font-semibold text-red-600">{item.score} 分</p>
+            <div className="flex-grow ml-1">
+              <p className="text-sm font-DynaPuff text-gray-900">{item.name}</p>
+              <p className="text-[12px] text-gray-600">{item.id.substring(0, 4) + '...' + item.id.substring(item.id.length - 4)}</p>
+              <p className="text-sm font-DynaPuff text-red-600">{item.amount}</p>
             </div>
           </motion.li>
         ))}

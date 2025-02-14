@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { ConnectButton } from '@mysten/dapp-kit'
 
 export default function Register() {
 
@@ -7,6 +8,11 @@ export default function Register() {
       className="flex min-h-screen flex-col items-center justify-center p-12"
       style={{ backgroundImage: 'url(/bg.png)' }}
     >
+      
+      {/* <div>
+        <ConnectButton />
+      </div>  报错*/}
+
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 bg-red-100">
         <div className="text-center">
           <h1 className="mt-4 text-3xl font-DynaPuff text-red-600">Welcome</h1>

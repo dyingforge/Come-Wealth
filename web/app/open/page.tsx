@@ -1,55 +1,62 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { usePopup } from "@/context/PopupProvider";
+import WealthGod from "@/components/wealthGod";
+import Leaderboard from "@/components/RankList";
 
 export default function OpenRedEnvelope() {
-  const [isOpened, setIsOpened] = useState(false);
-  const [amount, setAmount] = useState("0.00");
+  // 假设每个红包有 description, sender 和 amount
+  const mockItems = [
+    { description: "good lucky", sender: "0x8f5C8b7A1b7c2E9eF8b4d4A1D7A8B907b1F24561", claimAmount: 8.88, isOpened: false },
+    { description: "good lucky", sender: "0x2A4F3b7A8D7c2E1eF9B1c2D6A0C2b1D4A2E8C3F3", claimAmount: 5.00, isOpened: false },
+    { description: "good lucky", sender: "0xD5D8b7A8D5E3D9F5F8F1D9A8D8F9A1C8F5D2D7B6", claimAmount: 10.00, isOpened: false },
+    { description: "good lucky", sender: "0xA1B2c3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9B0", claimAmount: 3.50, isOpened: false },
+    { description: "good lucky", sender: "0x4E5C8A1B2D3C4E6F7D8F9A1D2B8A3C9D5A1E7F6", claimAmount: 12.99, isOpened: false },
+    { description: "good lucky", sender: "0x3F7C8A9B6D5F1E9C7D2F0E4A6D3E5F7C8A2D7F1", claimAmount: 6.66, isOpened: false },
+  ];
 
-  const handleOpen = () => {
-    setIsOpened(true);
-    // 这里可以添加获取红包金额的逻辑
-    setAmount("8.88");
+  const { showPopup } = usePopup();
+  const [items, setItems] = useState(mockItems);  // 将红包列表存储在状态中
+
+  const handleOpen = (index: number) => {
+    console.log(`Opened wealth god at index ${index}`);
+    showPopup(
+      () => {
+        const updatedItems = [...items];
+        updatedItems[index] = { ...updatedItems[index], isOpened: true };
+        setItems(updatedItems); 
+        console.log("Popup confirmed");
+      },
+      () => {
+        console.log("Popup cancelled");
+      }
+    );
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-red-100">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
-        <div className="text-center">
-          <Image
-            src="/placeholder.svg?height=150&width=150"
-            alt="红包"
-            width={150}
-            height={150}
-            className={`mx-auto transition-transform duration-500 ${
-              isOpened ? "scale-110" : ""
-            }`}
-          />
-          <h1 className="mt-4 text-3xl font-bold text-red-600">
-            {isOpened ? "恭喜发财" : "新年快乐"}
-          </h1>
-        </div>
-        {!isOpened ? (
-          <button
-            onClick={handleOpen}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            打开红包
-          </button>
-        ) : (
-          <div className="text-center">
-            <p className="text-2xl font-bold text-red-600">￥{amount}</p>
-            <p className="mt-2 text-gray-600">恭喜您获得红包</p>
-          </div>
-        )}
+    <main
+      className="flex min-h-screen flex-col items-center p-6 space-y-10"
+      style={{ backgroundImage: "url(/bg.png)" }}
+    >
+      <div className="flex items-center justify-start w-full">
         <Link
-          href="/send-red-envelope"
-          className="block w-full text-center py-2 px-4 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          href="/send"
+          className="text-center py-2 px-4 border border-red-300 rounded-md shadow-sm text-m font-DynaPuff text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
-          返回发红包
+          Do You want to send the God of Wealth ?
         </Link>
+      </div>
+      <div className="flex justify-between w-full space-x-4">
+        <div className="w-2/3">
+          <div className="text-center">
+            <WealthGod items={items} handleOpen={handleOpen} />
+          </div>
+        </div>
+        <div className="w-1/3 bg-gray-100">
+          <Leaderboard items={[]} />
+        </div>
       </div>
     </main>
   );
