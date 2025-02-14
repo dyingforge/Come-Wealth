@@ -1,27 +1,40 @@
 'use client'
 import { ConnectButton } from '@mysten/dapp-kit'
 import Image from 'next/image'
-import { getUserProfile } from '@/contracts/query'
+import { getUserProfile, } from '@/contracts/query'
 import { useCurrentAccount } from '@mysten/dapp-kit'
 import { useEffect, useState } from 'react'
 import { CategorizedObjects, calculateTotalBalance, formatBalance } from '@/utils/assetsHelpers'
+import { ContractsProvider } from '@/context/contractsProvider'
 
 export default function Home() {
   const account = useCurrentAccount();
   const [userObjects, setUserObjects] = useState<CategorizedObjects | null>(null);
+  const {getState, getWealthGods,getDisplayProfile} = ContractsProvider();
+
+
+
 
   useEffect(() => {
+
     async function fetchUserProfile() {
+
       if (account?.address) {
         try {
+          const state = await getState();
+          const wealthGods = await getWealthGods();
+          const displayProfile = await getDisplayProfile();
           const profile = await getUserProfile(account.address);
           setUserObjects(profile);
+          console.log("state",state);
+          console.log("wealthGods",wealthGods);
+          console.log("displayProfile",displayProfile?.id);
+          console.log("UserWealthGods",displayProfile?.wealthGods[0].sender);
         } catch (error) {
           console.error('Error fetching user profile:', error);
         }
       }
     }
-
     fetchUserProfile();
   }, [account]);
 
@@ -33,12 +46,12 @@ export default function Home() {
         </div>
         <ConnectButton />
       </header>
+
       {userObjects!=null ? (
       <main className="flex-grow flex flex-col items-center p-8">        
         {userObjects && (
           <div className="w-full max-w-6xl">
             <h2 className="text-2xl font-bold mb-4">Your Assets</h2>
-            
             <div className="flex gap-8">
               <div className="flex-1">
                 <h3 className="text-xl font-semibold mb-2">Coins</h3>
@@ -53,7 +66,6 @@ export default function Home() {
                   );
                 })}
               </div>
-              
               <div className="flex-1">
                 <h3 className="text-xl font-semibold mb-2">Other Objects</h3>
                 <div className="h-[500px] overflow-y-auto pr-4">

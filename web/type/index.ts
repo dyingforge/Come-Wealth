@@ -1,0 +1,39 @@
+export interface DisplayProfile {
+    id: string;
+    name: string;
+    sendAmount: number;
+    claimAmount: number;
+    wealthGods: WealthGod[];
+}
+
+export interface Profile {
+  id: string;
+  name: string;
+  sendAmount: number;
+  claimAmount: number;
+  wealthGods: string[];
+}
+
+export interface WealthGod {
+    id: string;
+    sender: string;
+    description: string;
+    isclaimed: boolean;
+    amount: number;
+    claimAmount: number;
+}
+
+export interface State {
+    id: string;
+    profiles: ProfileCreated[];
+}
+
+export interface WealthGodCreated {
+    id: string;
+    sender: string;
+}
+
+export interface ProfileCreated {
+    id: string;
+    owner: string;
+}
