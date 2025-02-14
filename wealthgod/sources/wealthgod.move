@@ -21,6 +21,7 @@ public struct WealthGod has key{
     description: String,
     isclaimed: bool,
     amount: Balance<SUI>,
+    claimAmount: u64,
 }
 
 public struct State has key{
@@ -29,7 +30,7 @@ public struct State has key{
     profiles: Table<address, address>,
 }
 
-public struct Profile has key,store{
+public struct Profile has key{
     id: UID,
     name: String,
     sendAmount: u64,
@@ -54,9 +55,7 @@ public struct ProfileCreated has copy, drop {
     owner: address,
 }
 
-// sender :create: mint fee :contain 1sui
-//         :receiver claim:random = recevice mint fee 0.3-2.5sui
-// receiver:mint:random 0.3-2.5sui
+
 //初始化可以考虑加点钱
 fun init(ctx: &mut TxContext){
     transfer::share_object(WeathPool{
@@ -79,7 +78,7 @@ public entry fun create_profile(
 ) {
     let uid = object::new(ctx);
     let owner = ctx.sender();
-    assert!(!table::contains(&state.profiles, owner), 3);
+    assert!(!table::contains(&state.profiles, owner), 0);
     let sendAmount = 0;
     let claimAmount = 0;
     let id = object::uid_to_inner(&uid);
@@ -100,16 +99,16 @@ public entry fun createWealthGod(coin:&mut Coin<SUI>,description:String, user:&m
     let in_coin = coin::split(coin, 1000000000, ctx);
     let amount = coin::into_balance(in_coin);
     let value = amount.value();
-    assert!(value > 0,0);
     let uid = object::new(ctx);
     let id = object::uid_to_inner(&uid);
-    let sender = tx_context::sender(ctx);
+    let sender = object::uid_to_address(&user.id);
     let wealthGod = WealthGod {
         id: uid,
         sender, 
         isclaimed: false,
         amount,
         description,
+        claimAmount:0,
     };
     user.sendAmount = user.sendAmount + value;
     event::emit(WealthGodCreated{
@@ -122,7 +121,6 @@ public entry fun createWealthGod(coin:&mut Coin<SUI>,description:String, user:&m
 
 
 public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:&mut WeathPool,user:&mut Profile,random:&Random,ctx: &mut TxContext){
-         //待改
         assert!(wealthGod.isclaimed == false,1);
         wealthGod.isclaimed = true;
         assert!(in_coin.value() > 2500000000,2);
@@ -138,7 +136,8 @@ public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:
         pool.amount.join(max_amount);
         let sender_coin = coin::take(&mut pool.amount,claim_amount,ctx);
         let recevicer_coin = coin::from_balance(balance::withdraw_all(&mut pool.amount),ctx);
-        user.claimAmount = user.claimAmount + claim_amount;
+        wealthGod.claimAmount = wealthGod.claimAmount + claim_amount;
+        user.claimAmount = claim_amount;
         transfer::public_transfer(wealth_god_coin,ctx.sender());
         transfer::public_transfer(recevicer_coin,ctx.sender());
         transfer::public_transfer(sender_coin,wealthGod.sender);
