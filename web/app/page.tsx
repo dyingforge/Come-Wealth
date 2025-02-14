@@ -1,20 +1,27 @@
 'use client'
 import { ConnectButton } from '@mysten/dapp-kit'
 import Image from 'next/image'
-import { getUserProfile, } from '@/contracts/query'
+import { getUserProfile,createProfileTx,createProfiletestTx } from '@/contracts/query'
 import { useCurrentAccount } from '@mysten/dapp-kit'
 import { useEffect, useState } from 'react'
 import { CategorizedObjects, calculateTotalBalance, formatBalance } from '@/utils/assetsHelpers'
 import { ContractsProvider } from '@/context/contractsProvider'
+import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx'
+
 
 export default function Home() {
   const account = useCurrentAccount();
   const [userObjects, setUserObjects] = useState<CategorizedObjects | null>(null);
   const {getState, getWealthGods,getDisplayProfile} = ContractsProvider();
+  const {handleSignAndExecuteTransaction : createProfile} = useBetterSignAndExecuteTransaction({tx:createProfileTx});
+
+  const handleCreateProfileClick = async () => {
+    createProfile({name:"test"}).execute();
+    console.log("Profile created");
+  }
 
 
-
-
+  
   useEffect(() => {
 
     async function fetchUserProfile() {
@@ -46,7 +53,7 @@ export default function Home() {
         </div>
         <ConnectButton />
       </header>
-
+      <button onClick={handleCreateProfileClick}>Create Profile</button>
       {userObjects!=null ? (
       <main className="flex-grow flex flex-col items-center p-8">        
         {userObjects && (

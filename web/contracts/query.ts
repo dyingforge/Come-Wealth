@@ -5,6 +5,7 @@ import { categorizeSuiObjects, CategorizedObjects } from "@/utils/assetsHelpers"
 import { WealthGod } from "@/type";
 import { createBetterTxFactory,networkConfig } from "./index";
 import { State, ProfileCreated, WealthGodCreated,Profile } from "@/type";
+import { Transaction } from "@mysten/sui/transactions";
 
 export const getUserProfile = async (address: string): Promise<CategorizedObjects> => {
   if (!isValidSuiAddress(address)) {
@@ -124,18 +125,31 @@ if (!profile) {
 //   event::emit(ProfileCreated { id, owner });
 // }
 export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkVariables,params)=>{
-  const {name} = params;
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
     function: "create_profile",
     arguments: [
       tx.object(networkVariables.state),
-      tx.pure.string(name),
+      tx.pure.string(params.name),
     ]
   })
   return tx;
 })
+
+export const createProfiletestTx = (name:string) => {
+  const tx = new Transaction();
+    tx.moveCall({
+        package: networkConfig.testnet.variables.package,
+        module: "manage",
+        function: "create_profile",
+        arguments: [
+          tx.pure.string(name),
+          tx.object(networkConfig.testnet.variables.state)
+        ]
+    })
+    return tx;
+}
 
 // public entry fun createWealthGod(coin:&mut Coin<SUI>,description:String, user:&mut Profile,ctx: &mut TxContext) {
 //   let in_coin = coin::split(coin, 1000000000, ctx);
