@@ -23,6 +23,13 @@ const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {} }) =
         >
           {item.isOpened ? (
             <div className="mt-2">
+                <Image
+                    src="/opened.png" 
+                    alt="opened" 
+                    width={100}
+                    height={100}
+                    className="mx-auto"
+                    />
               <h2 className="text-xs font-DynaPuff text-green-600">
                 ClaimAmount: {item.claimAmount.toFixed(2)}
               </h2>

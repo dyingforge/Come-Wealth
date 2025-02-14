@@ -15,15 +15,15 @@ interface LeaderboardProps {
 
 const Leaderboard: React.FC<LeaderboardProps> = ({ items }) => {
   return (
-    <div className="w-full bg-white shadow-lg rounded-xl overflow-hidden">
-      <h2 className="text-2xl font-DynaPuff text-center py-5 bg-gradient-to-r from-red-500 via-pink-500 to-red-600 text-white rounded-t-xl">
+    <div className="w-full bg-white overflow-hidden">
+      <h2 className="text-2xl font-DynaPuff text-center py-4 bg-gradient-to-r from-red-500 via-pink-500 to-red-600 text-white">
         RankList
       </h2>
       <ul className="divide-y divide-gray-300 w-full">
         {items.slice(0, 5).map((item, index) => (
           <motion.li
             key={index} 
-            className="flex items-center justify-between p-2 w-full"
+            className="flex items-center justify-between p-4 w-full"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}

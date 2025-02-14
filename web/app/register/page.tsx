@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ConnectButton } from '@mysten/dapp-kit'
+import { SuiConnectButton } from "@/components/ui/button"
 
 export default function Register() {
 
@@ -8,10 +8,10 @@ export default function Register() {
       className="flex min-h-screen flex-col items-center justify-center p-12"
       style={{ backgroundImage: 'url(/bg.png)' }}
     >
+
       
-      {/* <div>
-        <ConnectButton />
-      </div>  报错*/}
+        <SuiConnectButton />
+     
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 bg-red-100">
         <div className="text-center">
