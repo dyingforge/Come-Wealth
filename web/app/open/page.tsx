@@ -10,7 +10,8 @@ import { ContractsProvider } from "@/context/contractsProvider";
 import { WealthGod as WealthGodItem, LeaderboardItem } from '@/type';
 import { claimWealthGodTx } from '@/contracts/query';
 import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
-import Navi_bar from '@/components/Navi_bar'
+import { ConnectButton} from "@mysten/dapp-kit";
+import Image from 'next/image'
 
 
 export default function OpenRedEnvelope() {
@@ -67,10 +68,16 @@ export default function OpenRedEnvelope() {
 
   return (
     <main
-      className="flex min-h-screen flex-col items-center p-6 space-y-10 bg-cover"
-      style={{ backgroundImage: "url(/bg.png)" }}
+      className="flex min-h-screen flex-col p-8"
+      style={{ backgroundImage: 'url(/bg.png)' }}
     >
-      <Navi_bar />
+      <header className="flex justify-between items-center p-4 bg-red-500 rounded-2xl shadow-md mb-20">
+        <div className="flex items-center rounded-full overflow-hidden">
+          <Image src="/logo.png" alt="Sui Logo" width={80} height={40} />
+        </div>
+        <ConnectButton />
+      </header>
+
       <div className="flex justify-between w-full space-x-4">
         <div className="w-2/3">
           <div className="flex w-1/2 justify-between items-start mb-4">
@@ -91,7 +98,7 @@ export default function OpenRedEnvelope() {
             <WealthGod items={items} handleOpen={handleOpen} />
           </div>
         </div>
-        <div className="w-1/3 bg-gray-100 p-4 rounded-md shadow-md">
+        <div className="">
           <Leaderboard items={leaderboardData} />
         </div>
       </div>

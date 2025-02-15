@@ -53,13 +53,16 @@ export const queryState = async () => {
 
 export const queryAllProfile = async () => {
   const state = await queryState();
-  const profiles:Profile[] = [];
-  state.profiles.map(async(oneprofile)=>{
+  const profilePromises = state.profiles.map(async (oneprofile) => {
     const profile = await queryProfile(oneprofile.id);
-    profiles.push(profile);
-  })
+    return profile; // 返回获取到的profile
+  });
+
+  // 使用 Promise.all 等待所有异步请求完成
+  const profiles = await Promise.all(profilePromises);
   return profiles;
-}
+};
+
 
 export const queryWealthGods = async () => {
   const events = await suiClient.queryEvents({
@@ -111,6 +114,7 @@ if (!profile) {
 }
   return profile;
 }
+
 
 export const queryWealthGod = async (address: string) => {
   if (!isValidSuiAddress(address)) {
@@ -171,7 +175,7 @@ export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkV
   })
   return tx;
 })
-
+ 
 
 // public entry fun createWealthGod(coin:&mut Coin<SUI>,description:String, user:&mut Profile,ctx: &mut TxContext) {
 //   let in_coin = coin::split(coin, 1000000000, ctx);
@@ -197,16 +201,21 @@ export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkV
 //   transfer::share_object(wealthGod);
 // }
 
-export const createWealthGodTx = createBetterTxFactory<{description:string,user:string,coin:string}>((tx,networkVariables,params)=>{
-  const {description,user,coin} = params;
+export const createWealthGodTx =async (description:string,user:string) =>{
+  const tx = new Transaction();
+  const [in_coin] = tx.splitCoins(tx.gas, [2_000_000_000]);
   tx.moveCall({
-    package: networkVariables.package,
+    package: networkConfig.testnet.variables.package,
     module: "wealthgod",
     function: "createWealthGod",
-    arguments: [tx.object(coin),tx.pure.string(description),tx.object(user)]
+    arguments: [
+      in_coin,
+      tx.pure.string(description),
+      tx.object(user)]
   })
   return tx;
-})
+}
+
 
 // public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:&mut WeathPool,user:&mut Profile,random:&Random,ctx: &mut TxContext){
 //   assert!(wealthGod.isclaimed == false,1);

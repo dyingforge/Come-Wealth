@@ -1,13 +1,12 @@
 "use client";
 
-import { ConnectButton } from '@mysten/dapp-kit'
 import { useEffect, useState } from 'react'
 import { ContractsProvider } from '@/context/contractsProvider';
 import { useRouter } from 'next/navigation';
 import { createProfileTx } from '@/contracts/query';
 import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
-import Navi_bar from '@/components/Navi_bar'
-
+import { ConnectButton} from "@mysten/dapp-kit";
+import Image from 'next/image'
 
 export default function Register() {
   const {hasProfile} = ContractsProvider();
@@ -36,11 +35,18 @@ export default function Register() {
     
     <main
 
-      className="flex min-h-screen flex-col items-center justify-center p-12"
+      className="flex min-h-screen flex-col p-8"
       style={{ backgroundImage: 'url(/bg.png)' }}
     >
-      <Navi_bar />
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 bg-red-100">
+      
+      <header className="flex justify-between items-center p-4 bg-red-500 rounded-2xl shadow-md mb-40">
+        <div className="flex items-center rounded-full overflow-hidden">
+          <Image src="/logo.png" alt="Sui Logo" width={80} height={40} />
+        </div>
+        <ConnectButton />
+      </header>
+
+      <div className=" w-full max-w-md justify-center items-center bg-white rounded-2xl shadow-xl p-8 space-y-6 bg-red-100">
         <div className="text-center">
           <h1 className="mt-4 text-3xl font-DynaPuff text-red-600">Welcome</h1>
           <h2 className="mt-4 text-2xl font-DynaPuff text-red-400">Start your luck !</h2>

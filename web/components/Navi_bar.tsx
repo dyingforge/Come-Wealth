@@ -1,19 +1,13 @@
 import { ConnectButton} from "@mysten/dapp-kit";
-
+import Image from 'next/image'
 const Navi_bar = () => {
   return (
-    <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Profile Manage
-            </span>
-          </div>
-          <ConnectButton />
+    <header className="flex justify-between items-center p-4 bg-red-500 rounded-2xl shadow-md mb-40">
+        <div className="flex items-center rounded-full overflow-hidden">
+          <Image src="/logo.png" alt="Sui Logo" width={80} height={40} />
         </div>
-      </div>
-    </header>
+        <ConnectButton />
+      </header>
   );
 };
 

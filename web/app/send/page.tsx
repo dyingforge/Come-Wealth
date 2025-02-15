@@ -5,110 +5,144 @@ import Image from "next/image";
 import Link from "next/link";
 import Leaderboard from "@/components/RankList";
 import { queryAllProfile } from "@/contracts/query";
-import { LeaderboardItem, WealthGod as WealthGodItem } from "@/type";
-import { useCurrentAccount } from '@mysten/dapp-kit'
+import { LeaderboardItem } from "@/type";
+import { ContractsProvider } from "@/context/contractsProvider";
+import {
+  ConnectButton,
+  useCurrentAccount,
+  useSignAndExecuteTransaction,
+} from "@mysten/dapp-kit";
 import { createWealthGodTx } from "@/contracts/query";
-import { useBetterSignAndExecuteTransaction } from "@/hooks/useBetterTx";
-import Navi_bar from "@/components/Navi_bar"
-import { ContractsProvider } from "@/context/contractsProvider";  
+
 export default function SendRedEnvelope() {
-  const { getWealthGods } = ContractsProvider();
-  const { handleSignAndExecuteTransaction:sendWealthGod } = useBetterSignAndExecuteTransaction({tx:createWealthGodTx});
-  const account = useCurrentAccount();
+  const { getDisplayProfile } = ContractsProvider();
+
+  const { mutateAsync: signAndExecuteTransaction } =
+    useSignAndExecuteTransaction();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
-  const [items, setItems] = useState<WealthGodItem[]>([]);
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const [description, setDescription] = useState("");
+  const [user, setUser] = useState<string | undefined>(undefined);
+
+  const handleCreateWealthGod = async () => {
+    console.log("Sui ready!");
+    console.log("description", description);
+    
+
+    if (user !== undefined) {
+      const tx = await createWealthGodTx(description, user);
+      await signAndExecuteTransaction(
+        {
+          transaction: tx,
+        },
+        {
+          onSuccess: () => {
+            console.log("send Sui successfully");
+          },
+        }
+      );
+    }
   };
 
   useEffect(() => {
     const fetchData = async () => {
       const profiles = await queryAllProfile();
-      const wealthGods = await getWealthGods();
+      console.log("Fetched profiles:", profiles); // 查看返回的数据
+      const profile = await getDisplayProfile();
+      console.log(profile);
 
-      setItems(wealthGods
-        .filter((wealthGod) => wealthGod.isclaimed)
-        .map((wealthGod) => ({
-          id: wealthGod.id,
-          amount: wealthGod.amount,
-          description: wealthGod.description,
-          sender: wealthGod.sender,
-          claimAmount: wealthGod.amount,
-          isclaimed: false,
-        })));
+      if (profile) {
+        setUser(profile.id);
+        console.log("user", user);
+      } else {
+        console.error("Profile is undefined");
+        return; // 如果 profile 是 undefined，直接返回，避免后续操作
+      }
+      if (profiles.length === 0) {
+        console.error("No profiles found!");
+      }
 
-      setLeaderboardData(profiles?.map((profile) => ({
-        id: profile.id,
-        name: profile.name,
-        amount: profile.sendAmount,
-      })));
+      setLeaderboardData(
+        profiles?.map((profile) => ({
+          id: profile.id,
+          name: profile.name,
+          amount: Number(profile.sendAmount), 
+        }))
+      );
+      console.log("Leaderboard Data:", leaderboardData); // 确保数据更新
     };
     fetchData();
   }, []);
 
-  console.log("leaderboardData",leaderboardData)
   return (
     <main
-      className="flex min-h-screen flex-col items-center p-8 space-y-10 "
+      className="flex min-h-screen flex-col p-8"
       style={{ backgroundImage: "url(/bg.png)" }}
-    > 
+    >
+      <header className="flex justify-between items-center p-4 bg-red-500 rounded-2xl shadow-md mb-20">
+        <div className="flex items-center rounded-full overflow-hidden">
+          <Image src="/logo.png" alt="Sui Logo" width={80} height={40} />
+        </div>
+        <ConnectButton />
+      </header>
 
-      <Navi_bar/>
-      <div className="flex justify-between h-full space-x-10">
-        <div className="w-full w-2/3 p-4">
-        <div className="flex justify-between items-start mb-4">
-          <Link
-            href="/open"
-            className="text-center py-2 px-4 border border-red-300 rounded-md shadow-sm text-m font-DynaPuff text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            Claim
-          </Link>
-          <Link
-            href="/profile"
-            className="py-2 px-4 border border-red-300 rounded-md shadow-sm text-m font-DynaPuff text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            Profile
-          </Link>
-      </div>
-      
-      <div className="w-full w-2/3 bg-white rounded-2xl p-4">
-          <div className="text-center py-4 ">
-            <h1 className="text-[20px] text-red-600 font-DynaPuff">
-              Begin to pary for blessing !
-            </h1>
-            <Image
-              src="/god.png"
-              alt="红包"
-              width={140}
-              height={100}
-              className="mx-auto mt-2 rounded-lg"
-            />
+      <div className="flex justify-between items-center h-full space-x-1">
+        <div className="w-full w-1/2 p-2 justify-start  ">
+          <div className="flex justify-between items-start mb-4">
+            <Link
+              href="/open"
+              className="text-center py-2 px-4 border border-red-300 rounded-md shadow-sm text-m font-DynaPuff text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              Claim
+            </Link>
+            <Link
+              href="/profile"
+              className="py-2 px-4 border border-red-300 rounded-md shadow-sm text-m font-DynaPuff text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              Profile
+            </Link>
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label
-                htmlFor="description"
-                className="block text-sm font-DynaPuff text-gray-700"
-              >
-                Description
-              </label>
-              <input
-                type="text"
-                name="description"
-                id="description"
-                className="mt-1 w-full rounded-md border-red-500 bg-red-100 text-black font-DynaPuff shadow-sm test-xs"
+
+          <div className="w-full bg-white rounded-2xl p-4">
+            <div className="text-center py-4 ">
+              <h1 className="text-[20px] text-red-600 font-DynaPuff">
+                Begin to pary for blessing !
+              </h1>
+              <Image
+                src="/god.png"
+                alt="红包"
+                width={140}
+                height={100}
+                className="mx-auto mt-2 rounded-lg"
               />
             </div>
-            <button
-              type="submit"
-              className="w-full flex justify-center py-2 px-4 rounded-md shadow-sm text-sm font-DynaPuff text-white bg-red-600 hover:bg-red-700 "
-            >
-              Send 1 Sui
-            </button>
-          </form>
+            <form>
+              <div className="mb-4">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-DynaPuff text-gray-700"
+                >
+                  Description
+                </label>
+                <input
+                  type="text"
+                  name="description"
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)} // 更新 description
+                  className="mt-1 w-full rounded-md border-red-500 bg-red-100 text-black font-DynaPuff shadow-sm test-xs"
+                />
+              </div>
+              <button
+                type="button" // 不需要 type="submit"，改为 type="button"
+                className="w-full flex justify-center py-2 px-4 rounded-md shadow-sm text-sm font-DynaPuff text-white bg-red-600 hover:bg-red-700 "
+                onClick={handleCreateWealthGod} // 直接调用 handleCreateWealthGod
+              >
+                Send 1 Sui
+              </button>
+            </form>
+          </div>
         </div>
-        </div>
-        <div className="w-1/3 bg-gray-100">
+        <div className="">
           <Leaderboard items={leaderboardData} />
         </div>
       </div>
