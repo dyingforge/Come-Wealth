@@ -6,6 +6,14 @@ export interface DisplayProfile {
     wealthGods: WealthGod[];
 }
 
+  
+  export interface LeaderboardItem {
+    id: string;
+    name: string;
+    amount: number;
+  }
+  
+
 export interface Profile {
   id: string;
   name: string;

@@ -20,7 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <SuiClientProvider networks={networkConfig} defaultNetwork={network}>
         <WalletProvider>
               <PopupProvider>
-              {children}
+                {children}
               <PopupContainer />
             </PopupProvider>
         </WalletProvider>

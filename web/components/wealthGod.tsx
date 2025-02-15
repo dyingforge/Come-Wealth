@@ -1,11 +1,5 @@
 import Image from "next/image";
-
-interface WealthGodItem {
-  description: string;
-  sender: string;
-  isOpened: boolean;
-  claimAmount: number;
-}
+import { WealthGod as WealthGodItem } from "@/type";
 
 interface WealthGodProps {
   items: WealthGodItem[];
@@ -19,9 +13,9 @@ const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {} }) =
         <div
           key={index}
           className="text-center bg-white rounded-lg p-1 mb-4 w-full cursor-pointer flex flex-col items-center justify-center"
-          onClick={() => !item.isOpened && handleOpen(index)} // 只有未打开的红包才触发 handleOpen
+          onClick={() => handleOpen(index)} // 只有未打开的红包才触发 handleOpen
         >
-          {item.isOpened ? (
+          {item.isclaimed ? (
             <div className="mt-2">
                 <Image
                     src="/opened.png" 
@@ -31,7 +25,7 @@ const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {} }) =
                     className="mx-auto"
                     />
               <h2 className="text-xs font-DynaPuff text-green-600">
-                ClaimAmount: {item.claimAmount.toFixed(2)}
+                ClaimAmount: {item.claimAmount}
               </h2>
               <h2
                 className={`text-sm font-DynaPuff ${
@@ -49,11 +43,7 @@ const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {} }) =
           <h1 className="mt-2 text-[10px] font-DynaPuff text-red-600">
             {item.description}
           </h1>
-          <h1 className="mt-2 text-xs font-DynaPuff text-red-400">
-            {item.sender.substring(0, 4) +
-              "..." +
-              item.sender.substring(item.sender.length - 4)}
-          </h1>
+
         </div>
       ))}
     </div>

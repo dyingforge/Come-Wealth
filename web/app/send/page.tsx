@@ -1,48 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Leaderboard from "@/components/RankList";
+import { queryAllProfile } from "@/contracts/query";
+import { LeaderboardItem, WealthGod as WealthGodItem } from "@/type";
+import { useCurrentAccount } from '@mysten/dapp-kit'
+import { createWealthGodTx } from "@/contracts/query";
+import { useBetterSignAndExecuteTransaction } from "@/hooks/useBetterTx";
+import Navi_bar from "@/components/Navi_bar"
+import { ContractsProvider } from "@/context/contractsProvider";  
 export default function SendRedEnvelope() {
+  const { getWealthGods } = ContractsProvider();
+  const { handleSignAndExecuteTransaction:sendWealthGod } = useBetterSignAndExecuteTransaction({tx:createWealthGodTx});
+  const account = useCurrentAccount();
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
+  const [items, setItems] = useState<WealthGodItem[]>([]);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // 这里可以添加发送红包的逻辑
   };
 
-  const leaderboardData = [
-    {
-      id: "0xbbb7418f361f7e7f217e177dc76420c275c27ed101a3ed1e3c15a9e9dd3d6983",
-      name: "Elemen",
-      amount: 1000,
-    },
-    {
-      id: "0xbbb7418f361f7e7f217e177dc76420c275c27ed101a3ed1e3c15a9e9dd3d6983",
-      name: "Elemen",
-      amount: 1000,
-    },
-    {
-      id: "0xbbb7418f361f7e7f217e177dc76420c275c27ed101a3ed1e3c15a9e9dd3d6983",
-      name: "Elemen",
-      amount: 1000,
-    },
-    {
-      id: "0xbbb7418f361f7e7f217e177dc76420c275c27ed101a3ed1e3c15a9e9dd3d6983",
-      name: "Elemen",
-      amount: 1000,
-    },
-    {
-      id: "0xbbb7418f361f7e7f217e177dc76420c275c27ed101a3ed1e3c15a9e9dd3d6983",
-      name: "Elemen",
-      amount: 1000,
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      const profiles = await queryAllProfile();
+      const wealthGods = await getWealthGods();
 
+      setItems(wealthGods
+        .filter((wealthGod) => wealthGod.isclaimed)
+        .map((wealthGod) => ({
+          id: wealthGod.id,
+          amount: wealthGod.amount,
+          description: wealthGod.description,
+          sender: wealthGod.sender,
+          claimAmount: wealthGod.amount,
+          isclaimed: false,
+        })));
+
+      setLeaderboardData(profiles?.map((profile) => ({
+        id: profile.id,
+        name: profile.name,
+        amount: profile.sendAmount,
+      })));
+    };
+    fetchData();
+  }, []);
+
+  console.log("leaderboardData",leaderboardData)
   return (
     <main
       className="flex min-h-screen flex-col items-center p-8 space-y-10 "
       style={{ backgroundImage: "url(/bg.png)" }}
     > 
+
+      <Navi_bar/>
       <div className="flex justify-between h-full space-x-10">
         <div className="w-full w-2/3 p-4">
         <div className="flex justify-between items-start mb-4">

@@ -51,6 +51,16 @@ export const queryState = async () => {
   return state;
 }
 
+export const queryAllProfile = async () => {
+  const state = await queryState();
+  const profiles:Profile[] = [];
+  state.profiles.map(async(oneprofile)=>{
+    const profile = await queryProfile(oneprofile.id);
+    profiles.push(profile);
+  })
+  return profiles;
+}
+
 export const queryWealthGods = async () => {
   const events = await suiClient.queryEvents({
     query: {
@@ -102,6 +112,31 @@ if (!profile) {
   return profile;
 }
 
+export const queryWealthGod = async (address: string) => {
+  if (!isValidSuiAddress(address)) {
+    throw new Error("Invalid wealthGod address");
+}
+  const profileContent = await suiClient.getObject({
+    id: address,
+    options: {
+      showContent: true,
+    },
+  })
+  if (!profileContent.data?.content) {
+    throw new Error("WealthGod content not found");
+}
+
+const parsedWealthGod = profileContent.data.content as SuiParsedData;
+if (!('fields' in parsedWealthGod)) {
+    throw new Error("Invalid wealthGod data structure");
+}
+
+const wealthGod = parsedWealthGod.fields as unknown as WealthGod;
+if (!wealthGod) {
+    throw new Error("Failed to parse wealthGod data");
+}
+  return wealthGod;
+}
 // public entry fun create_profile(
 //   state: &mut State,
 //   name: String,
@@ -137,19 +172,6 @@ export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkV
   return tx;
 })
 
-export const createProfiletestTx = (name:string) => {
-  const tx = new Transaction();
-    tx.moveCall({
-        package: networkConfig.testnet.variables.package,
-        module: "manage",
-        function: "create_profile",
-        arguments: [
-          tx.pure.string(name),
-          tx.object(networkConfig.testnet.variables.state)
-        ]
-    })
-    return tx;
-}
 
 // public entry fun createWealthGod(coin:&mut Coin<SUI>,description:String, user:&mut Profile,ctx: &mut TxContext) {
 //   let in_coin = coin::split(coin, 1000000000, ctx);
@@ -209,13 +231,13 @@ export const createWealthGodTx = createBetterTxFactory<{description:string,user:
 //   transfer::public_transfer(sender_coin,wealthGod.sender);
 // }
 
-export const claimWealthGodTx = createBetterTxFactory<{wealthGod:string,in_coin:string,pool:string,user:string,random:string}>((tx,networkVariables,params)=>{
-  const {wealthGod,in_coin,pool,user,random} = params;
+export const claimWealthGodTx = createBetterTxFactory<{wealthGod:string,in_coin:string,user:string}>((tx,networkVariables,params)=>{
+  const {wealthGod,in_coin,user} = params;
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
     function: "claimWealthGod",
-    arguments: [tx.object(wealthGod),tx.object(in_coin),tx.object(pool),tx.object(user),tx.object(random)]
+    arguments: [tx.object(wealthGod),tx.object(in_coin), tx.object(networkConfig.testnet.variables.wealthGod),tx.object(user),tx.object("0x8")]
   })
   return tx;
 })

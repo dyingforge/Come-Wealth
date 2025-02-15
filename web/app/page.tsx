@@ -1,7 +1,7 @@
 'use client'
 import { ConnectButton } from '@mysten/dapp-kit'
 import Image from 'next/image'
-import { getUserProfile,createProfileTx,createProfiletestTx } from '@/contracts/query'
+import { getUserProfile,createProfileTx,queryAllProfile } from '@/contracts/query'
 import { useCurrentAccount } from '@mysten/dapp-kit'
 import { useEffect, useState } from 'react'
 import { CategorizedObjects, calculateTotalBalance, formatBalance } from '@/utils/assetsHelpers'
@@ -29,6 +29,7 @@ export default function Home() {
       if (account?.address) {
         try {
           const state = await getState();
+          const profiles = await queryAllProfile();
           const wealthGods = await getWealthGods();
           const displayProfile = await getDisplayProfile();
           const profile = await getUserProfile(account.address);
@@ -37,6 +38,7 @@ export default function Home() {
           console.log("wealthGods",wealthGods);
           console.log("displayProfile",displayProfile?.id);
           console.log("UserWealthGods",displayProfile?.wealthGods[0].sender);
+          console.log("profiles",profiles);
         } catch (error) {
           console.error('Error fetching user profile:', error);
         }

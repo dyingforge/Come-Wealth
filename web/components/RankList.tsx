@@ -1,19 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, Medal } from 'lucide-react';
+import { LeaderboardItem } from '@/type';
 
 // 数据结构定义
-interface LeaderboardItem {
-  id: string; 
-  name: string;
-  amount: number;
-}
 
 interface LeaderboardProps {
   items: LeaderboardItem[];
 }
 
 const Leaderboard: React.FC<LeaderboardProps> = ({ items }) => {
+  console.log("items",items)
   return (
     <div className="w-full bg-white overflow-hidden">
       <h2 className="text-2xl font-DynaPuff text-center py-4 bg-gradient-to-r from-red-500 via-pink-500 to-red-600 text-white">
@@ -42,9 +39,9 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ items }) => {
               )}
             </div>
             <div className="flex-grow ml-1">
-              <p className="text-sm font-DynaPuff text-gray-900">{item.name}</p>
-              <p className="text-[12px] text-gray-600">{item.id.substring(0, 4) + '...' + item.id.substring(item.id.length - 4)}</p>
-              <p className="text-sm font-DynaPuff text-red-600">{item.amount}</p>
+              <p className="text-sm font-DynaPuff text-gray-900">name:{item.name}</p>
+              <p className="text-sm font-DynaPuff text-red-600">id:{item.id?.id}</p>
+              <p className="text-sm font-DynaPuff text-red-600">amount:{item.amount}</p>
             </div>
           </motion.li>
         ))}
