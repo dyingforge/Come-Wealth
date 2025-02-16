@@ -12,17 +12,23 @@ import { claimWealthGodTx } from '@/contracts/query';
 import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
 import { ConnectButton} from "@mysten/dapp-kit";
 import Image from 'next/image'
-
-
+import { useCurrentAccount } from '@mysten/dapp-kit';
+import { isValidSuiAddress } from "@mysten/sui/utils";
 export default function OpenRedEnvelope() {
-  const { getWealthGods,userProfile } = ContractsProvider();
+  const { getWealthGods,getDisplayProfile } = ContractsProvider();
+  const account = useCurrentAccount();
   const { showPopup } = usePopup();
   const [items, setItems] = useState<WealthGodItem[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
   const { handleSignAndExecuteTransaction:claimWealthGod } = useBetterSignAndExecuteTransaction({tx:claimWealthGodTx});
 
-  const handleClaimClick = async () => {
-    claimWealthGod({ wealthGod: wealthGod, user: userProfile?.id.id??'' }).execute();
+  const handleClaimClick = async (index:number) => {
+    const userProfile = await getDisplayProfile();
+    if (account?.address && isValidSuiAddress(account?.address)) {
+      claimWealthGod({ wealthGod: items[index].id.id, user: userProfile?.id.id??'',sender:account?.address}).execute();
+    }
+    console.log("items",items[index]);
+    console.log("userProfile",userProfile?.id.id);
   }
 
   useEffect(() => {
@@ -68,6 +74,7 @@ export default function OpenRedEnvelope() {
       () => {
         const updatedItems = [...items];
         updatedItems[index] = { ...updatedItems[index], isclaimed: true };
+        handleClaimClick(index);
         setItems(updatedItems);
         console.log("Popup confirmed");
       },
@@ -106,7 +113,7 @@ export default function OpenRedEnvelope() {
             </Link>
           </div>
           <div className="text-center">
-            <WealthGod items={items} handleOpen={handleOpen} />
+            <WealthGod items={items} handleOpen={handleOpen}  />
           </div>
         </div>  
         <div className="">

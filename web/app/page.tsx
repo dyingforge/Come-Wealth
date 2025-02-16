@@ -21,7 +21,7 @@ export default function Home() {
   const [userObjects, setUserObjects] = useState<CategorizedObjects | null>(
     null
   );
-  const { getState, getWealthGods, getDisplayProfile } = ContractsProvider();
+  const {  getWealthGods, getDisplayProfile } = ContractsProvider();
   const { handleSignAndExecuteTransaction: createProfile } =
     useBetterSignAndExecuteTransaction({ tx: createProfileTx });
 
@@ -34,13 +34,11 @@ export default function Home() {
     async function fetchUserProfile() {
       if (account?.address) {
         try {
-          const state = await getState();
           const profiles = await queryAllProfile();
           const wealthGods = await getWealthGods();
           const displayProfile = await getDisplayProfile();
           const profile = await getUserProfile(account.address);
           setUserObjects(profile);
-          console.log("state", state);
           console.log("wealthGods", wealthGods);
           console.log("displayProfile", displayProfile?.id);
           console.log("UserWealthGods", displayProfile?.wealthGods[0].sender);

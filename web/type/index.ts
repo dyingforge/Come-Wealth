@@ -23,7 +23,7 @@ export interface Profile {
 }
 
 export interface WealthGod {
-    id: string;
+    id: {id:string};
     sender: string;
     description: string;
     isclaimed: boolean;

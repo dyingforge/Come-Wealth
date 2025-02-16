@@ -255,7 +255,7 @@ export const createWealthGodTx = createBetterTxFactory<{ description: string, us
 //   transfer::public_transfer(sender_coin,wealthGod.sender);
 // }
 
-export const claimWealthGodTx = createBetterTxFactory<{ wealthGod: string, user: string }>((tx, networkVariables, params) => {
+export const claimWealthGodTx = createBetterTxFactory<{ wealthGod: string, user: string,sender:string }>((tx, networkVariables, params) => {
   const { wealthGod, user } = params;
   const payment = 2600000000;
   const [coin] = tx.splitCoins(tx.gas, [payment]);
@@ -266,5 +266,6 @@ export const claimWealthGodTx = createBetterTxFactory<{ wealthGod: string, user:
     function: "claimWealthGod",
     arguments: [tx.object(wealthGod), coin, tx.object(networkConfig.testnet.variables.wealthGodPool), tx.object(user), tx.object("0x8")]
   })
+  tx.transferObjects([coin], params.sender);
   return tx;
 })

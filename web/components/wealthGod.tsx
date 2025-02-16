@@ -8,7 +8,7 @@ interface WealthGodProps {
 
 const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {} }) => { // 默认值为空函数
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 gap-2">
       {items.map((item, index) => (
         <div
           key={index}
@@ -16,31 +16,30 @@ const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {} }) =
           onClick={() => handleOpen(index)} // 只有未打开的红包才触发 handleOpen
         >
           {item.isclaimed ? (
-            <div className="mt-2">
+            <div className="">
                 <Image
                     src="/opened.png" 
                     alt="opened" 
-                    width={100}
-                    height={100}
-                    className="mx-auto"
+                    width={70}
+                    height={70}
                     />
-              <h2 className="text-xs font-DynaPuff text-green-600">
-                ClaimAmount: {item.claimAmount}
+              <h2 className="text-[10px] font-DynaPuff text-green-600">
+                Claim: {(item.claimAmount/1000000000).toFixed(2)}
               </h2>
               <h2
-                className={`text-sm font-DynaPuff ${
+                className={`text-[10px] font-DynaPuff ${
                   item.claimAmount - 1 > 0 ? "text-red-600" : "text-green-600"
                 }`}
               >
                 {item.claimAmount - 1 > 0
-                  ? `Profit: ${(item.claimAmount - 1).toFixed(2)}`
-                  : `Loss: ${Math.abs(item.claimAmount - 1).toFixed(2)}`}
+                  ? `Profit: ${(item.claimAmount/1000000000).toFixed(2)}`
+                  : `Loss: ${Math.abs(item.claimAmount/1000000000).toFixed(2)}`}
               </h2>
             </div>
           ) : (
             <Image src="/god.png" alt="红包" width={80} height={60} />
           )}
-          <h1 className="mt-2 text-[10px] font-DynaPuff text-red-600">
+          <h1 className="mt-2 text-[8px] font-DynaPuff text-red-600">
             {item.description}
           </h1>
 

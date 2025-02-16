@@ -20,7 +20,7 @@ export default function SendRedEnvelope() {
   const { getDisplayProfile, userProfile } = ContractsProvider();
   const { handleSignAndExecuteTransaction:createWealthGod } = useBetterSignAndExecuteTransaction({tx:createWealthGodTx});
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
-  const [description, setDescription] = useState("God bless you !");
+  const [description, setDescription] = useState("");
   
   const handleCreateWealthGod = async () => {
     if (account?.address && isValidSuiAddress(account?.address)) {
