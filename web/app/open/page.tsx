@@ -43,7 +43,7 @@ export default function OpenRedEnvelope() {
         })));
 
       setLeaderboardData(profiles?.map((profile) => ({
-        id: profile.id,
+        id: profile.id.id,
         name: profile.name,
         amount: profile.claimAmount,
       })));
@@ -79,7 +79,7 @@ export default function OpenRedEnvelope() {
       </header>
 
       <div className="flex justify-between w-full space-x-4">
-        <div className="w-full w-1/2 p-2 justify-start  ">
+        <div className="w-1/2 p-2 justify-start  ">
           <div className="flex justify-between items-start mb-4">
             <Link
               href="/send"
@@ -97,7 +97,7 @@ export default function OpenRedEnvelope() {
           <div className="text-center">
             <WealthGod items={items} handleOpen={handleOpen} />
           </div>
-        </div>
+        </div>  
         <div className="">
           <Leaderboard items={leaderboardData} />
         </div>

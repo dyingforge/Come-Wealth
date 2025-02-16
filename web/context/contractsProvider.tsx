@@ -7,22 +7,20 @@ import { useCurrentAccount } from "@mysten/dapp-kit";
 
 export function ContractsProvider() {
   const [hasProfile, setHasProfile] = useState(false);
+  const [userProfile, setUserProfile] = useState<DisplayProfile>();
   const currentUser = useCurrentAccount();
 
-  const getState = async () => {
-    const state = await queryState();
-    return state;
-  };
 
   //查找当前用户的profile
   const getDisplayProfile = async () => {
-        const state = await getState();
+        const state = await queryState();
         const userInfo = state.profiles.find((user) => user.owner === currentUser?.address);
+        console.log("userInfo", userInfo);
         setHasProfile(!!userInfo);
-        if (currentUser && (userInfo as any)?.id) {
-          const profile = await queryProfile((userInfo as any).id);
+        if (userInfo?.id) {
+          const profile = await queryProfile(userInfo?.id);
 
-            let displayProfile = ({
+            const displayProfile = ({
               id: profile.id,
               name: profile.name,
               sendAmount: profile.sendAmount,
@@ -33,6 +31,7 @@ export function ContractsProvider() {
               const wealthGod = await queryWealthGod(wealthGodid)as unknown as WealthGod;
               displayProfile.wealthGods.push(wealthGod);
             })
+            setUserProfile(displayProfile);
             return displayProfile;
         }
     };
@@ -50,8 +49,8 @@ export function ContractsProvider() {
   return {
     getDisplayProfile,
     getWealthGods,
-    getState,
-    hasProfile
+    hasProfile,
+    userProfile
   };
 }
 

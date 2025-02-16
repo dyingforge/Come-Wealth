@@ -51,7 +51,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ items }) => {
               <p className="text-sm font-DynaPuff text-gray-900">name: {item.name}</p>
               <p className="text-sm font-DynaPuff text-red-600">amount: {item.amount.toFixed(2)}</p>
               <p className="text-[10px] font-DynaPuff text-gray-500 break-all w-full">
-                id: {item.id?.id}
+                id: {item.id}
               </p>
             </div>
           </motion.li>

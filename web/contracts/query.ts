@@ -1,14 +1,13 @@
 import { isValidSuiAddress } from "@mysten/sui/utils";
 import { suiClient } from "./index";
-import { SuiObjectResponse,SuiParsedData } from "@mysten/sui/client";
+import { SuiObjectResponse, SuiParsedData } from "@mysten/sui/client";
 import { categorizeSuiObjects, CategorizedObjects } from "@/utils/assetsHelpers";
 import { WealthGod } from "@/type";
-import { createBetterTxFactory,networkConfig } from "./index";
-import { State, ProfileCreated, WealthGodCreated,Profile } from "@/type";
+import { createBetterTxFactory, networkConfig } from "./index";
+import { State, ProfileCreated, WealthGodCreated, Profile } from "@/type";
 import { Transaction } from "@mysten/sui/transactions";
-import { BcsWriter,bcs } from '@mysten/bcs';
 
-const writer = new BcsWriter();
+
 
 export const getUserProfile = async (address: string): Promise<CategorizedObjects> => {
   if (!isValidSuiAddress(address)) {
@@ -38,17 +37,17 @@ export const getUserProfile = async (address: string): Promise<CategorizedObject
 
 export const queryState = async () => {
   const events = await suiClient.queryEvents({
-      query: {
-          MoveEventType: `${networkConfig.testnet.variables.package}::wealthgod::ProfileCreated`
-      }
+    query: {
+      MoveEventType: `${networkConfig.testnet.variables.package}::wealthgod::ProfileCreated`
+    }
   })
-  const state:State = {
-      id:networkConfig.testnet.variables.state,
-      profiles:[]
-  }   
-  events.data.map((event)=>{
-      const user = event.parsedJson as ProfileCreated;
-      state.profiles.push(user);
+  const state: State = {
+    id: networkConfig.testnet.variables.state,
+    profiles: []
+  }
+  events.data.map((event) => {
+    const user = event.parsedJson as ProfileCreated;
+    state.profiles.push(user);
   })
   return state;
 }
@@ -69,11 +68,11 @@ export const queryAllProfile = async () => {
 export const queryWealthGods = async () => {
   const events = await suiClient.queryEvents({
     query: {
-        MoveEventType: `${networkConfig.testnet.variables.package}::wealthgod::WealthGodCreated`
+      MoveEventType: `${networkConfig.testnet.variables.package}::wealthgod::WealthGodCreated`
     }
-})
-  const wealthGods:WealthGod[] = [];
-  events.data.map(async (event)=>{
+  })
+  const wealthGods: WealthGod[] = [];
+  events.data.map(async (event) => {
     const WealthGodCreated = event.parsedJson as WealthGodCreated;
     const wealthGodFirst = await suiClient.getObject({
       id: WealthGodCreated.id,
@@ -84,9 +83,9 @@ export const queryWealthGods = async () => {
     const parsedWealthGod = wealthGodFirst.data?.content as SuiParsedData;
     if (!parsedWealthGod || !('fields' in parsedWealthGod)) {
       throw new Error('Invalid wealthGod data structure');
-  }
-  const wealthGod = parsedWealthGod.fields as unknown as WealthGod;
-  wealthGods.push(wealthGod);
+    }
+    const wealthGod = parsedWealthGod.fields as unknown as WealthGod;
+    wealthGods.push(wealthGod);
   })
   return wealthGods;
 }
@@ -94,7 +93,7 @@ export const queryWealthGods = async () => {
 export const queryProfile = async (address: string) => {
   if (!isValidSuiAddress(address)) {
     throw new Error("Invalid profile address");
-}
+  }
   const profileContent = await suiClient.getObject({
     id: address,
     options: {
@@ -103,17 +102,17 @@ export const queryProfile = async (address: string) => {
   })
   if (!profileContent.data?.content) {
     throw new Error("Profile content not found");
-}
+  }
 
-const parsedProfile = profileContent.data.content as SuiParsedData;
-if (!('fields' in parsedProfile)) {
+  const parsedProfile = profileContent.data.content as SuiParsedData;
+  if (!('fields' in parsedProfile)) {
     throw new Error("Invalid profile data structure");
-}
+  }
 
-const profile = parsedProfile.fields as unknown as Profile;
-if (!profile) {
+  const profile = parsedProfile.fields as unknown as Profile;
+  if (!profile) {
     throw new Error("Failed to parse profile data");
-}
+  }
   return profile;
 }
 
@@ -128,7 +127,7 @@ export const getCoinsID = async (address: string) => {
 export const queryWealthGod = async (address: string) => {
   if (!isValidSuiAddress(address)) {
     throw new Error("Invalid wealthGod address");
-}
+  }
   const profileContent = await suiClient.getObject({
     id: address,
     options: {
@@ -137,17 +136,17 @@ export const queryWealthGod = async (address: string) => {
   })
   if (!profileContent.data?.content) {
     throw new Error("WealthGod content not found");
-}
+  }
 
-const parsedWealthGod = profileContent.data.content as SuiParsedData;
-if (!('fields' in parsedWealthGod)) {
+  const parsedWealthGod = profileContent.data.content as SuiParsedData;
+  if (!('fields' in parsedWealthGod)) {
     throw new Error("Invalid wealthGod data structure");
-}
+  }
 
-const wealthGod = parsedWealthGod.fields as unknown as WealthGod;
-if (!wealthGod) {
+  const wealthGod = parsedWealthGod.fields as unknown as WealthGod;
+  if (!wealthGod) {
     throw new Error("Failed to parse wealthGod data");
-}
+  }
   return wealthGod;
 }
 // public entry fun create_profile(
@@ -172,7 +171,7 @@ if (!wealthGod) {
 //   table::add(&mut state.profiles, owner, object::id_to_address(&id));
 //   event::emit(ProfileCreated { id, owner });
 // }
-export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkVariables,params)=>{
+export const createProfileTx = createBetterTxFactory<{ name: string }>((tx, networkVariables, params) => {
 
 
   tx.moveCall({
@@ -186,7 +185,7 @@ export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkV
   })
   return tx;
 })
- 
+
 
 // public entry fun createWealthGod(coin:&mut Coin<SUI>,description:String, user:&mut Profile,ctx: &mut TxContext) {
 //   let in_coin = coin::split(coin, 1000000000, ctx);
@@ -212,21 +211,22 @@ export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkV
 //   transfer::share_object(wealthGod);
 // }
 
-export const createWealthGodTx = createBetterTxFactory<{description:string,user:string}>((tx,networkVariables,params)=>{
-  const {description,user} = params;
-  const txb = new Transaction();
-  const payment = 1500000000;
-  const [coin] = txb.splitCoins(txb.gas, [payment]);
-  
+export const createWealthGodTx = createBetterTxFactory<{ description: string, user: string, sender: string }>((tx, networkVariables, params) => {
+  const { description, user } = params;
+  const payment = 1000000000;
+  const [coin] = tx.splitCoins(tx.gas, [payment]);
+
   tx.moveCall({
-    package: networkConfig.testnet.variables.package,
+    package: networkVariables.package,
     module: "wealthgod",
     function: "createWealthGod",
     arguments: [
-      coin,
+      tx.object(coin),
       tx.pure.string(description),
-      tx.object(user)]
+      tx.object(user),
+    ]
   })
+  tx.transferObjects([coin], params.sender);
   return tx;
 })
 
@@ -254,17 +254,17 @@ export const createWealthGodTx = createBetterTxFactory<{description:string,user:
 //   transfer::public_transfer(sender_coin,wealthGod.sender);
 // }
 
-export const claimWealthGodTx = createBetterTxFactory<{wealthGod:string,user:string}>((tx,networkVariables,params)=>{
-  const {wealthGod,user} = params;
+export const claimWealthGodTx = createBetterTxFactory<{ wealthGod: string, user: string }>((tx, networkVariables, params) => {
+  const { wealthGod, user } = params;
   const txb = new Transaction();
   const payment = 2600000000;
   const [coin] = txb.splitCoins(txb.gas, [payment]);
-  
+
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
     function: "claimWealthGod",
-    arguments: [tx.object(wealthGod),coin, tx.object(networkConfig.testnet.variables.wealthGod),tx.object(user),tx.object("0x8")]
+    arguments: [tx.object(wealthGod), coin, tx.object(networkConfig.testnet.variables.wealthGod), tx.object(user), tx.object("0x8")]
   })
   return tx;
 })

@@ -1,7 +1,6 @@
 "use client";
 
 import { ConnectButton } from "@mysten/dapp-kit";
-import WealthGod from "@/components/wealthGod";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ContractsProvider } from "@/context/contractsProvider";
