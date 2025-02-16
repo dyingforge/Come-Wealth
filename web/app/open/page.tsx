@@ -25,9 +25,13 @@ export default function OpenRedEnvelope() {
   const handleClaimClick = async (index:number) => {
     const userProfile = await getDisplayProfile();
     if (account?.address && isValidSuiAddress(account?.address)) {
-      claimWealthGod({ wealthGod: items[index].id.id, user: userProfile?.id.id??'',sender:account?.address}).execute();
+      claimWealthGod({ wealthGod: items[index].id.id, user: userProfile?.id.id??'',sender:account?.address}).onSuccess(async (result) => {
+        const wealthGods = await getWealthGods();
+        setItems(items.map((item, idx) => idx === index ? { ...item, claimAmount:wealthGods[index].claimAmount, isclaimed: true } : item));
+        console.log("items",items);
+      }).execute();
     }
-    console.log("items",items[index]);
+    console.log("items",items[index].id.id);
     console.log("userProfile",userProfile?.id.id);
   }
 
@@ -44,7 +48,7 @@ export default function OpenRedEnvelope() {
           amount: wealthGod.amount,
           description: wealthGod.description,
           sender: wealthGod.sender,
-          claimAmount: wealthGod.amount,
+          claimAmount: wealthGod.claimAmount,
           isclaimed: false,
         }));
   
@@ -72,10 +76,7 @@ export default function OpenRedEnvelope() {
     console.log(`Opened wealth god at index ${index}`);
     showPopup(
       () => {
-        const updatedItems = [...items];
-        updatedItems[index] = { ...updatedItems[index], isclaimed: true };
         handleClaimClick(index);
-        setItems(updatedItems);
         console.log("Popup confirmed");
       },
       () => {

@@ -213,7 +213,7 @@ export const createProfileTx = createBetterTxFactory<{ name: string }>((tx, netw
 //   transfer::share_object(wealthGod);
 // }
 
-export const createWealthGodTx = createBetterTxFactory<{ description: string, user: string, sender: string }>((tx, networkVariables, params) => {
+export const createWealthGodTx = createBetterTxFactory<{ description: string, user: string,sender:string }>((tx, networkVariables, params) => {
   const { description, user } = params;
   const payment = 1000000000;
   const [coin] = tx.splitCoins(tx.gas, [payment]);
@@ -266,6 +266,5 @@ export const claimWealthGodTx = createBetterTxFactory<{ wealthGod: string, user:
     function: "claimWealthGod",
     arguments: [tx.object(wealthGod), coin, tx.object(networkConfig.testnet.variables.wealthGodPool), tx.object(user), tx.object("0x8")]
   })
-  tx.transferObjects([coin], params.sender);
   return tx;
 })

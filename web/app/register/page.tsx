@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import { createProfileTx } from '@/contracts/query';
 import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
 import { ConnectButton} from "@mysten/dapp-kit";
+import { queryState } from '@/contracts/query';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import Image from 'next/image'
 
 export default function Register() {
   const currentUser = useCurrentAccount();
-  const {getState} = ContractsProvider();
   const [hasProfile, setHasProfile] = useState(false);
   const router = useRouter();
   const {handleSignAndExecuteTransaction:createProfileHandler} = useBetterSignAndExecuteTransaction({tx:createProfileTx});
@@ -20,7 +20,7 @@ export default function Register() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const state = await getState();
+      const state = await queryState();
       const userInfo = state.profiles.find((user) => user.owner === currentUser?.address);
       const profileExists = !!userInfo;
       setHasProfile(profileExists);

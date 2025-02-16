@@ -26,9 +26,9 @@ const { networkConfig, useNetworkVariables } = createNetworkConfig({
     testnet: {
         url: getFullnodeUrl("testnet"),
         variables: {
-            package:"0xae17b1f578d8d371fae0974d4fedda49e26e7afe560aac650b32e7ae35ed7831",
-            state:"0x80b7438ecb23ae7da4f55cd2ea772e15af380047701e4bb90fc1331f3a017804",
-            wealthGodPool:"0xdcd9d5e8da53114de198508e656b6731c7694bf50ebfd0e2c3bb3d3c9c72a85b"
+            package:"0x82a270883636ea9364064f835ff3a3fd7f71d6873b0c51526aab9dfb5c1433e2",
+            state:"0xa29f4e77f652b3a1e2be8bdbeea0e5137e943a05993f584fa9215957553d28ca",
+            wealthGodPool:"0xf9babff58ab75630fa1d17784ce1c0b2c19c1225090ae768f6e007eba4f01094"
         },
     },
     mainnet: {

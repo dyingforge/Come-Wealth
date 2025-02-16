@@ -32,8 +32,8 @@ const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {} }) =
                 }`}
               >
                 {item.claimAmount - 1 > 0
-                  ? `Profit: ${(item.claimAmount/1000000000).toFixed(2)}`
-                  : `Loss: ${Math.abs(item.claimAmount/1000000000).toFixed(2)}`}
+                  ? `Profit: ${((item.claimAmount/1000000000)-1).toFixed(2)}`
+                  : `Loss: ${Math.abs((item.claimAmount/1000000000)-1).toFixed(2)}`}
               </h2>
             </div>
           ) : (
