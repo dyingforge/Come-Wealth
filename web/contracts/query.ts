@@ -6,9 +6,6 @@ import { WealthGod } from "@/type";
 import { createBetterTxFactory,networkConfig } from "./index";
 import { State, ProfileCreated, WealthGodCreated,Profile } from "@/type";
 import { Transaction } from "@mysten/sui/transactions";
-import { BcsWriter,bcs } from '@mysten/bcs';
-
-const writer = new BcsWriter();
 
 export const getUserProfile = async (address: string): Promise<CategorizedObjects> => {
   if (!isValidSuiAddress(address)) {
@@ -117,12 +114,6 @@ if (!profile) {
   return profile;
 }
 
-export const getCoinsID = async (address: string) => {
-  const coins = await suiClient.getCoins({
-    owner: address,
-  });
-  return coins;
-}
 
 
 export const queryWealthGod = async (address: string) => {
@@ -174,7 +165,6 @@ if (!wealthGod) {
 // }
 export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkVariables,params)=>{
 
-
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
@@ -212,12 +202,9 @@ export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkV
 //   transfer::share_object(wealthGod);
 // }
 
-export const createWealthGodTx = createBetterTxFactory<{description:string,user:string}>((tx,networkVariables,params)=>{
-  const {description,user} = params;
-  const txb = new Transaction();
-  const payment = 1500000000;
-  const [coin] = txb.splitCoins(txb.gas, [payment]);
-  
+export const createWealthGodTx =  async(description:string,user:string) => {
+  const tx = new Transaction();
+  const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(1500000000)]);
   tx.moveCall({
     package: networkConfig.testnet.variables.package,
     module: "wealthgod",
@@ -225,10 +212,10 @@ export const createWealthGodTx = createBetterTxFactory<{description:string,user:
     arguments: [
       coin,
       tx.pure.string(description),
-      tx.object(user)]
+      tx.object(user)],
   })
   return tx;
-})
+}
 
 
 // public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:&mut WeathPool,user:&mut Profile,random:&Random,ctx: &mut TxContext){
@@ -256,9 +243,8 @@ export const createWealthGodTx = createBetterTxFactory<{description:string,user:
 
 export const claimWealthGodTx = createBetterTxFactory<{wealthGod:string,user:string}>((tx,networkVariables,params)=>{
   const {wealthGod,user} = params;
-  const txb = new Transaction();
   const payment = 2600000000;
-  const [coin] = txb.splitCoins(txb.gas, [payment]);
+  const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(payment)]);
   
   tx.moveCall({
     package: networkVariables.package,

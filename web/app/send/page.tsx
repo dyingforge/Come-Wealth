@@ -12,18 +12,19 @@ import {
 } from "@mysten/dapp-kit";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { createWealthGodTx } from "@/contracts/query";
-import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
+import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 
 export default function SendRedEnvelope() {
   const  account  = useCurrentAccount();
   const { getDisplayProfile } = ContractsProvider();
-  const { handleSignAndExecuteTransaction:createWealthGod } = useBetterSignAndExecuteTransaction({tx:createWealthGodTx});
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
   const [description, setDescription] = useState("");
   const [user, setUser] = useState<string | undefined>(undefined);
+  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
   const handleCreateWealthGod = async () => {
-    createWealthGod({ description: description, user: user?.id }).execute();
+    const tx = await createWealthGodTx(description, user?.id);
+    signAndExecuteTransaction({ transaction: tx });
   };
 
   useEffect(() => {
