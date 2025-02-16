@@ -9,38 +9,21 @@ import { LeaderboardItem } from "@/type";
 import { ContractsProvider } from "@/context/contractsProvider";
 import {
   ConnectButton,
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
 } from "@mysten/dapp-kit";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import { createWealthGodTx } from "@/contracts/query";
+import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
 
 export default function SendRedEnvelope() {
+  const  account  = useCurrentAccount();
   const { getDisplayProfile } = ContractsProvider();
-
-  const { mutateAsync: signAndExecuteTransaction } =
-    useSignAndExecuteTransaction();
+  const { handleSignAndExecuteTransaction:createWealthGod } = useBetterSignAndExecuteTransaction({tx:createWealthGodTx});
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
   const [description, setDescription] = useState("");
   const [user, setUser] = useState<string | undefined>(undefined);
 
   const handleCreateWealthGod = async () => {
-    console.log("Sui ready!");
-    console.log("description", description);
-    
-
-    if (user !== undefined) {
-      const tx = await createWealthGodTx(description, user);
-      await signAndExecuteTransaction(
-        {
-          transaction: tx,
-        },
-        {
-          onSuccess: () => {
-            console.log("send Sui successfully");
-          },
-        }
-      );
-    }
+    createWealthGod({ description: description, user: user?.id }).execute();
   };
 
   useEffect(() => {
@@ -48,15 +31,11 @@ export default function SendRedEnvelope() {
       const profiles = await queryAllProfile();
       console.log("Fetched profiles:", profiles); // 查看返回的数据
       const profile = await getDisplayProfile();
-      console.log(profile);
-
+      console.log("profile",profile);
       if (profile) {
         setUser(profile.id);
-        console.log("user", user);
-      } else {
-        console.error("Profile is undefined");
-        return; // 如果 profile 是 undefined，直接返回，避免后续操作
-      }
+        console.log("user", user?.id);
+      } 
       if (profiles.length === 0) {
         console.error("No profiles found!");
       }
@@ -71,7 +50,7 @@ export default function SendRedEnvelope() {
       console.log("Leaderboard Data:", leaderboardData); // 确保数据更新
     };
     fetchData();
-  }, []);
+  }, [account]);
 
   return (
     <main

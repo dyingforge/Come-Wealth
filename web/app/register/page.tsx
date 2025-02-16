@@ -6,23 +6,34 @@ import { useRouter } from 'next/navigation';
 import { createProfileTx } from '@/contracts/query';
 import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
 import { ConnectButton} from "@mysten/dapp-kit";
+import { useCurrentAccount } from '@mysten/dapp-kit';
 import Image from 'next/image'
 
 export default function Register() {
-  const {hasProfile} = ContractsProvider();
+  const currentUser = useCurrentAccount();
+  const {getState} = ContractsProvider();
+  const [hasProfile, setHasProfile] = useState(false);
   const router = useRouter();
-  const { handleSignAndExecuteTransaction:createProfileHandler } = useBetterSignAndExecuteTransaction({tx:createProfileTx});
+  const {handleSignAndExecuteTransaction:createProfileHandler} = useBetterSignAndExecuteTransaction({tx:createProfileTx});
   const [name, setName] = useState('');
 
-  useEffect(() => {
-    if (hasProfile) {
-      router.push('/profile');
-    }
-  }, [hasProfile, router]);
 
-  if (hasProfile) {
-    return null;
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      const state = await getState();
+      const userInfo = state.profiles.find((user) => user.owner === currentUser?.address);
+      const profileExists = !!userInfo;
+      setHasProfile(profileExists);
+      
+      if (profileExists) {
+        router.push('/profile');
+      }
+      console.log("hasProfile", profileExists);
+    };
+    fetchData();
+  }, [currentUser]);
+
+
 
   const handleCreateProfileClick = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -45,8 +56,8 @@ export default function Register() {
         </div>
         <ConnectButton />
       </header>
-
-      <div className=" w-full max-w-md justify-center items-center bg-white rounded-2xl shadow-xl p-8 space-y-6 bg-red-100">
+    <div className="flex justify-center items-center h-full">
+      <div className=" w-full max-w-md justify-center items-center  bg-white rounded-2xl shadow-xl p-8 space-y-6 bg-red-100">
         <div className="text-center">
           <h1 className="mt-4 text-3xl font-DynaPuff text-red-600">Welcome</h1>
           <h2 className="mt-4 text-2xl font-DynaPuff text-red-400">Start your luck !</h2>
@@ -76,6 +87,7 @@ export default function Register() {
             Register
           </button>
         </form>
+      </div>
       </div>
     </main>
   )

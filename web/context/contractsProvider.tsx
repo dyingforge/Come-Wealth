@@ -2,7 +2,7 @@
 
 import { queryProfile,queryState,queryWealthGods,queryWealthGod } from '@/contracts/query'
 import { DisplayProfile,WealthGod } from '@/type'
-import { useState,  } from "react";
+import { useState } from "react";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 
 export function ContractsProvider() {

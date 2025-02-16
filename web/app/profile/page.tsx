@@ -8,12 +8,12 @@ import { ContractsProvider } from "@/context/contractsProvider";
 import { WealthGod as WealthGodItem } from "@/type";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import Image from "next/image";
-import type { Profile } from "@/type";
+import type { DisplayProfile } from "@/type";
 export default function Profile() {
   const { getDisplayProfile } = ContractsProvider();
   const [items, setItems] = useState<WealthGodItem[]>([]);
   const account = useCurrentAccount();
-  const [displayProfile, setDisplayProfile] = useState<Profil | undefined>(
+  const [displayProfile, setDisplayProfile] = useState<DisplayProfile | undefined>(
     undefined
   );
 
@@ -49,8 +49,8 @@ export default function Profile() {
       {account && displayProfile ? (
         <div className="w-full bg-white text-center justify-center items-center rounded-2xl p-4 font-DynaPuff mb-10">
           <p>name: {displayProfile?.name}</p>
-          <p>ClaimAmount: {displayProfile.claimAmount}</p>
-          <p>SendAmount: {displayProfile.sendAmount}</p>
+          <p>ClaimAmount: {(displayProfile.claimAmount/1000000000).toFixed(2)}</p>
+          <p>SendAmount: {(displayProfile.sendAmount/1000000000).toFixed(2)}</p>
 
         </div>
       ) : null}

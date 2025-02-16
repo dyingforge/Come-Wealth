@@ -6,12 +6,14 @@ import { WealthGod } from "@/type";
 import { createBetterTxFactory,networkConfig } from "./index";
 import { State, ProfileCreated, WealthGodCreated,Profile } from "@/type";
 import { Transaction } from "@mysten/sui/transactions";
+import { BcsWriter,bcs } from '@mysten/bcs';
+
+const writer = new BcsWriter();
 
 export const getUserProfile = async (address: string): Promise<CategorizedObjects> => {
   if (!isValidSuiAddress(address)) {
     throw new Error("Invalid Sui address");
   }
-  
 
   let hasNextPage = true;
   let nextCursor: string | null = null;
@@ -115,6 +117,13 @@ if (!profile) {
   return profile;
 }
 
+export const getCoinsID = async (address: string) => {
+  const coins = await suiClient.getCoins({
+    owner: address,
+  });
+  return coins;
+}
+
 
 export const queryWealthGod = async (address: string) => {
   if (!isValidSuiAddress(address)) {
@@ -164,6 +173,8 @@ if (!wealthGod) {
 //   event::emit(ProfileCreated { id, owner });
 // }
 export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkVariables,params)=>{
+
+
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
@@ -201,20 +212,23 @@ export const createProfileTx = createBetterTxFactory<{name:string}>((tx,networkV
 //   transfer::share_object(wealthGod);
 // }
 
-export const createWealthGodTx =async (description:string,user:string) =>{
-  const tx = new Transaction();
-  const [in_coin] = tx.splitCoins(tx.gas, [2_000_000_000]);
+export const createWealthGodTx = createBetterTxFactory<{description:string,user:string}>((tx,networkVariables,params)=>{
+  const {description,user} = params;
+  const txb = new Transaction();
+  const payment = 1500000000;
+  const [coin] = txb.splitCoins(txb.gas, [payment]);
+  
   tx.moveCall({
     package: networkConfig.testnet.variables.package,
     module: "wealthgod",
     function: "createWealthGod",
     arguments: [
-      in_coin,
+      coin,
       tx.pure.string(description),
       tx.object(user)]
   })
   return tx;
-}
+})
 
 
 // public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:&mut WeathPool,user:&mut Profile,random:&Random,ctx: &mut TxContext){
@@ -240,13 +254,17 @@ export const createWealthGodTx =async (description:string,user:string) =>{
 //   transfer::public_transfer(sender_coin,wealthGod.sender);
 // }
 
-export const claimWealthGodTx = createBetterTxFactory<{wealthGod:string,in_coin:string,user:string}>((tx,networkVariables,params)=>{
-  const {wealthGod,in_coin,user} = params;
+export const claimWealthGodTx = createBetterTxFactory<{wealthGod:string,user:string}>((tx,networkVariables,params)=>{
+  const {wealthGod,user} = params;
+  const txb = new Transaction();
+  const payment = 2600000000;
+  const [coin] = txb.splitCoins(txb.gas, [payment]);
+  
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
     function: "claimWealthGod",
-    arguments: [tx.object(wealthGod),tx.object(in_coin), tx.object(networkConfig.testnet.variables.wealthGod),tx.object(user),tx.object("0x8")]
+    arguments: [tx.object(wealthGod),coin, tx.object(networkConfig.testnet.variables.wealthGod),tx.object(user),tx.object("0x8")]
   })
   return tx;
 })

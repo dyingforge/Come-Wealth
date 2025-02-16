@@ -21,8 +21,8 @@ export default function OpenRedEnvelope() {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
   const { handleSignAndExecuteTransaction:claimWealthGod } = useBetterSignAndExecuteTransaction({tx:claimWealthGodTx});
 
-  const handleClaimClick = async (wealthGod:string,in_coin:string,user:string) => {
-    claimWealthGod({ wealthGod: wealthGod, in_coin: in_coin, user: user }).onSuccess(async (result) => {
+  const handleClaimClick = async (wealthGod:string,user:string) => {
+    claimWealthGod({ wealthGod: wealthGod, user: user }).onSuccess(async (result) => {
     }).execute();
   }
 
@@ -79,8 +79,8 @@ export default function OpenRedEnvelope() {
       </header>
 
       <div className="flex justify-between w-full space-x-4">
-        <div className="w-2/3">
-          <div className="flex w-1/2 justify-between items-start mb-4">
+        <div className="w-full w-1/2 p-2 justify-start  ">
+          <div className="flex justify-between items-start mb-4">
             <Link
               href="/send"
               className="text-center py-2 px-4 border border-red-300 rounded-md shadow-sm text-m font-DynaPuff text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
