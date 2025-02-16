@@ -41,7 +41,9 @@ export function ContractsProvider() {
   const getWealthGods = async () => {
     const wealthGods = await queryWealthGods() as WealthGod[];
     return wealthGods;
+
   };
+
 
   //查找当前用户的信息
 

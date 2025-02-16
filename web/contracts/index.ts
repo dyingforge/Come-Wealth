@@ -28,7 +28,7 @@ const { networkConfig, useNetworkVariables } = createNetworkConfig({
         variables: {
             package:"0xae17b1f578d8d371fae0974d4fedda49e26e7afe560aac650b32e7ae35ed7831",
             state:"0x80b7438ecb23ae7da4f55cd2ea772e15af380047701e4bb90fc1331f3a017804",
-            wealthGod:"0xdcd9d5e8da53114de198508e656b6731c7694bf50ebfd0e2c3bb3d3c9c72a85b"
+            wealthGodPool:"0xdcd9d5e8da53114de198508e656b6731c7694bf50ebfd0e2c3bb3d3c9c72a85b"
         },
     },
     mainnet: {
@@ -36,7 +36,7 @@ const { networkConfig, useNetworkVariables } = createNetworkConfig({
         variables: {
             package:"0xfa802f80c25dde3189d36915bcfa9cf78aaf6ce88afa5460680580311229eb91",
             state:"0x7a944e3ee1712cf3481f3741c728c17659fbb099ee3db28f0091e42ca651b843",
-            wealthGod:"0x3200083946dba6bab22696219e2a9e4780179458c88d39d466f14429641f0f9e"
+            wealthGodPool:"0x3200083946dba6bab22696219e2a9e4780179458c88d39d466f14429641f0f9e"
         },
     }
 });

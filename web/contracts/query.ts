@@ -63,30 +63,41 @@ export const queryAllProfile = async () => {
 };
 
 
-export const queryWealthGods = async () => {
+export const queryWealthGods = async (): Promise<WealthGod[]> => {
   const events = await suiClient.queryEvents({
     query: {
-      MoveEventType: `${networkConfig.testnet.variables.package}::wealthgod::WealthGodCreated`
-    }
-  })
-  const wealthGods: WealthGod[] = [];
-  events.data.map(async (event) => {
+      MoveEventType: `${networkConfig.testnet.variables.package}::wealthgod::WealthGodCreated`,
+    },
+  });
+
+  // 使用 Promise.all 来并行获取每个财富神的详细信息
+  const wealthGodPromises = events.data.map(async (event) => {
     const WealthGodCreated = event.parsedJson as WealthGodCreated;
+    
+    // 获取财富神的对象
     const wealthGodFirst = await suiClient.getObject({
       id: WealthGodCreated.id,
       options: {
         showContent: true,
       },
-    })
+    });
+
+    // 解析财富神的内容
     const parsedWealthGod = wealthGodFirst.data?.content as SuiParsedData;
     if (!parsedWealthGod || !('fields' in parsedWealthGod)) {
       throw new Error('Invalid wealthGod data structure');
     }
+
+    // 返回解析后的财富神对象
     const wealthGod = parsedWealthGod.fields as unknown as WealthGod;
-    wealthGods.push(wealthGod);
-  })
+    return wealthGod;
+  });
+
+  // 等待所有财富神数据的获取完成
+  const wealthGods = await Promise.all(wealthGodPromises);
   return wealthGods;
-}
+};
+
 
 export const queryProfile = async (address: string) => {
   if (!isValidSuiAddress(address)) {
@@ -218,7 +229,7 @@ export const createWealthGodTx = createBetterTxFactory<{ description: string, us
   })
   tx.transferObjects([coin], params.sender);
   return tx;
-}
+})
 
 
 // public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:&mut WeathPool,user:&mut Profile,random:&Random,ctx: &mut TxContext){
@@ -246,15 +257,14 @@ export const createWealthGodTx = createBetterTxFactory<{ description: string, us
 
 export const claimWealthGodTx = createBetterTxFactory<{ wealthGod: string, user: string }>((tx, networkVariables, params) => {
   const { wealthGod, user } = params;
-  const txb = new Transaction();
   const payment = 2600000000;
-  const [coin] = txb.splitCoins(txb.gas, [payment]);
+  const [coin] = tx.splitCoins(tx.gas, [payment]);
 
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
     function: "claimWealthGod",
-    arguments: [tx.object(wealthGod), coin, tx.object(networkConfig.testnet.variables.wealthGod), tx.object(user), tx.object("0x8")]
+    arguments: [tx.object(wealthGod), coin, tx.object(networkConfig.testnet.variables.wealthGodPool), tx.object(user), tx.object("0x8")]
   })
   return tx;
 })

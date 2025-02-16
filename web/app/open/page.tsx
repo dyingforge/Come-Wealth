@@ -15,24 +15,24 @@ import Image from 'next/image'
 
 
 export default function OpenRedEnvelope() {
-  const { getWealthGods } = ContractsProvider();
+  const { getWealthGods,userProfile } = ContractsProvider();
   const { showPopup } = usePopup();
   const [items, setItems] = useState<WealthGodItem[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
   const { handleSignAndExecuteTransaction:claimWealthGod } = useBetterSignAndExecuteTransaction({tx:claimWealthGodTx});
 
-  const handleClaimClick = async (wealthGod:string,user:string) => {
-    claimWealthGod({ wealthGod: wealthGod, user: user }).onSuccess(async (result) => {
-    }).execute();
+  const handleClaimClick = async () => {
+    claimWealthGod({ wealthGod: wealthGod, user: userProfile?.id.id??'' }).execute();
   }
 
   useEffect(() => {
     const fetchData = async () => {
       const profiles = await queryAllProfile();
       const wealthGods = await getWealthGods();
-
-      setItems(wealthGods
-        .filter((wealthGod) => wealthGod.isclaimed)
+      console.log("wealthGods", wealthGods);  // 打印 wealthGods 确保数据正确
+  
+      const filteredWealthGods = wealthGods
+        .filter((wealthGod) => !wealthGod.isclaimed)
         .map((wealthGod) => ({
           id: wealthGod.id,
           amount: wealthGod.amount,
@@ -40,16 +40,27 @@ export default function OpenRedEnvelope() {
           sender: wealthGod.sender,
           claimAmount: wealthGod.amount,
           isclaimed: false,
-        })));
+        }));
+  
+      console.log("filtered wealthGods", filteredWealthGods);  // 打印过滤后的 wealthGods
 
-      setLeaderboardData(profiles?.map((profile) => ({
-        id: profile.id.id,
-        name: profile.name,
-        amount: profile.claimAmount,
-      })));
+      setItems(filteredWealthGods);  // 设置 items
+  
+  
+      // 设置排行榜数据
+      setLeaderboardData(
+        profiles?.map((profile) => ({
+          id: profile.id.id,
+          name: profile.name,
+          amount: profile.claimAmount,
+        }))
+      );
     };
+  
     fetchData();
-  }, []);
+  }, []);  // 依赖项为空，表示只在组件挂载时执行一次
+  
+  
 
   const handleOpen = (index: number) => {
     console.log(`Opened wealth god at index ${index}`);
