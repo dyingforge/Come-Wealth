@@ -7,8 +7,6 @@ import { createBetterTxFactory, networkConfig } from "./index";
 import { State, ProfileCreated, WealthGodCreated, Profile } from "@/type";
 import { Transaction } from "@mysten/sui/transactions";
 
-
-
 export const getUserProfile = async (address: string): Promise<CategorizedObjects> => {
   if (!isValidSuiAddress(address)) {
     throw new Error("Invalid Sui address");
@@ -116,12 +114,6 @@ export const queryProfile = async (address: string) => {
   return profile;
 }
 
-export const getCoinsID = async (address: string) => {
-  const coins = await suiClient.getCoins({
-    owner: address,
-  });
-  return coins;
-}
 
 
 export const queryWealthGod = async (address: string) => {
@@ -173,7 +165,6 @@ export const queryWealthGod = async (address: string) => {
 // }
 export const createProfileTx = createBetterTxFactory<{ name: string }>((tx, networkVariables, params) => {
 
-
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
@@ -223,12 +214,11 @@ export const createWealthGodTx = createBetterTxFactory<{ description: string, us
     arguments: [
       tx.object(coin),
       tx.pure.string(description),
-      tx.object(user),
-    ]
+      tx.object(user)],
   })
   tx.transferObjects([coin], params.sender);
   return tx;
-})
+}
 
 
 // public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:&mut WeathPool,user:&mut Profile,random:&Random,ctx: &mut TxContext){
