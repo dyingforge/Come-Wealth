@@ -12,19 +12,19 @@ import {
 } from "@mysten/dapp-kit";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { createWealthGodTx } from "@/contracts/query";
-import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
+import { isValidSuiAddress } from "@mysten/sui/utils";
 
 export default function SendRedEnvelope() {
   const  account  = useCurrentAccount();
-  const { getDisplayProfile } = ContractsProvider();
+  const { getDisplayProfile, userProfile } = ContractsProvider();
+  const { handleSignAndExecuteTransaction:createWealthGod } = useBetterSignAndExecuteTransaction({tx:createWealthGodTx});
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
-  const [description, setDescription] = useState("");
-  const [user, setUser] = useState<string | undefined>(undefined);
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
-
+  const [description, setDescription] = useState("God bless you !");
   const handleCreateWealthGod = async () => {
-    const tx = await createWealthGodTx(description, user?.id);
-    signAndExecuteTransaction({ transaction: tx });
+    if (account?.address && isValidSuiAddress(account?.address)) {
+      createWealthGod({ description: description, user: userProfile?.id.id??'', sender: account?.address }).execute();
+    }
   };
 
   useEffect(() => {
@@ -33,17 +33,13 @@ export default function SendRedEnvelope() {
       console.log("Fetched profiles:", profiles); // 查看返回的数据
       const profile = await getDisplayProfile();
       console.log("profile",profile);
-      if (profile) {
-        setUser(profile.id);
-        console.log("user", user?.id);
-      } 
       if (profiles.length === 0) {
         console.error("No profiles found!");
       }
 
       setLeaderboardData(
         profiles?.map((profile) => ({
-          id: profile.id,
+          id: profile.id.id,
           name: profile.name,
           amount: Number(profile.sendAmount), 
         }))
@@ -66,7 +62,7 @@ export default function SendRedEnvelope() {
       </header>
 
       <div className="flex justify-between items-center h-full space-x-1">
-        <div className="w-full w-1/2 p-2 justify-start  ">
+        <div className="w-1/2 p-2 justify-start  ">
           <div className="flex justify-between items-start mb-4">
             <Link
               href="/open"

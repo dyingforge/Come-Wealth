@@ -1,5 +1,5 @@
 export interface DisplayProfile {
-    id: string;
+    id: {id:string};
     name: string;
     sendAmount: number;
     claimAmount: number;
@@ -15,7 +15,7 @@ export interface DisplayProfile {
   
 
 export interface Profile {
-  id: string;
+  id: {id:string};
   name: string;
   sendAmount: number;
   claimAmount: number;
