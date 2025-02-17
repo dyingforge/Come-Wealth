@@ -10,8 +10,8 @@ import { Popup } from "@/components/Popup";
 const queryClient = new QueryClient();
 
 function PopupContainer() {
-  const { isOpen, onConfirm, onCancel } = usePopup()
-  return <Popup isOpen={isOpen}  onConfirm={onConfirm} onCancel={onCancel} />
+  const { isOpen, onConfirm, onCancel, content } = usePopup()
+  return <Popup isOpen={isOpen}  onConfirm={onConfirm} onCancel={onCancel} content={content} />
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {

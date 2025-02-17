@@ -4,8 +4,9 @@ interface PopupContextType {
   isOpen: boolean;
   onConfirm: () => void;
   onCancel: () => void;
-  showPopup: (onConfirm: () => void, onCancel: () => void) => void;
+  showPopup: (onConfirm: () => void, onCancel: () => void,content:string) => void;
   hidePopup: () => void;
+  content:string
 }
 
 const PopupContext = createContext<PopupContextType | undefined>(undefined);
@@ -14,12 +15,13 @@ export function PopupProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmCallback, setConfirmCallback] = useState<() => void>(() => {});
   const [cancelCallback, setCancelCallback] = useState<() => void>(() => {});
-
+  const [content, setContent] = useState("Do you want to open it?");
   // 展示弹窗并传递确认和取消回调
-  const showPopup = (onConfirm: () => void, onCancel: () => void) => {
+  const showPopup = (onConfirm: () => void, onCancel: () => void,content:string) => {
     setConfirmCallback(() => onConfirm);
     setCancelCallback(() => onCancel);
     setIsOpen(true);
+    setContent(content);
   };
 
   // 隐藏弹窗
@@ -45,6 +47,7 @@ export function PopupProvider({ children }: { children: ReactNode }) {
     onCancel: handleCancel,
     showPopup,
     hidePopup,
+    content
   };
 
   return <PopupContext.Provider value={value}>{children}</PopupContext.Provider>;

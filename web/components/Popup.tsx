@@ -7,9 +7,10 @@ interface PopupProps {
   isOpen: boolean
   onConfirm: () => void
   onCancel: () => void
+  content: string
 }
 
-export function Popup({ isOpen, onConfirm, onCancel }: PopupProps) {
+export function Popup({ isOpen, onConfirm, onCancel,content }: PopupProps) {
 
     useEffect(() => {
       if (isOpen) {
@@ -36,7 +37,7 @@ export function Popup({ isOpen, onConfirm, onCancel }: PopupProps) {
           }}
         >
           <p className="text-center text-2xl font-semibold font-DynaPuff mb-6">
-            Do you want to open it?
+            {content}
           </p>
           <div className="flex gap-4">
             <button

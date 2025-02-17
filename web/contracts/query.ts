@@ -225,9 +225,11 @@ export const createWealthGodTx = createBetterTxFactory<{ description: string, us
     arguments: [
       tx.object(coin),
       tx.pure.string(description),
-      tx.object(user)],
+      tx.object(user),],
   })
+  tx.transferObjects([coin], params.sender);
   return tx;
+  
 })
 
 

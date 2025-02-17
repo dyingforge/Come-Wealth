@@ -4,13 +4,16 @@ import { ConnectButton } from "@mysten/dapp-kit";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ContractsProvider } from "@/context/contractsProvider";
+import { queryWealthGods } from "@/contracts/query";
 import { WealthGod as WealthGodItem } from "@/type";
 import { useCurrentAccount } from "@mysten/dapp-kit";
+import WealthGod from "@/components/wealthGod";
 import Image from "next/image";
 import type { DisplayProfile } from "@/type";
 export default function Profile() {
+
   const { getDisplayProfile } = ContractsProvider();
-  const [items, setItems] = useState<WealthGodItem[]>([]);
+  const [filteredWealthGods, setFilteredWealthGods] = useState<WealthGodItem[]>([]);
   const account = useCurrentAccount();
   const [displayProfile, setDisplayProfile] = useState<DisplayProfile | undefined>(
     undefined
@@ -19,14 +22,20 @@ export default function Profile() {
   useEffect(() => {
     const fetchData = async () => {
       const displayProfile = await getDisplayProfile();
-      console.log("displayProfile", displayProfile);
-      console.log("displayProfile.wealthGods", displayProfile?.wealthGods);
-      if (displayProfile?.wealthGods) {
-        setItems(displayProfile?.wealthGods);
-      }
       setDisplayProfile(displayProfile);
+      const wealthGods = await queryWealthGods(); 
+      const filteredWealthGods = wealthGods
+        .filter((wealthGod: WealthGodItem) => wealthGod.sender === account?.address)
+        .map((wealthGod: WealthGodItem) => ({
+          id: wealthGod.id,
+          amount: wealthGod.amount,
+          description: wealthGod.description,
+          sender: wealthGod.sender,
+          claimAmount: wealthGod.claimAmount,
+          isclaimed: wealthGod.isclaimed,
+        }));
+      setFilteredWealthGods(filteredWealthGods ?? []);
     };
-    console.log("items", items);
     fetchData();
   }, [account]);
 
@@ -41,7 +50,7 @@ export default function Profile() {
         </div>
         <ConnectButton />
       </header>
-
+    
       <div className="text-center flex justify-center items-center bg-white text-red-600 font-DynaPuff py-4 px-6 rounded-xl shadow-lg mb-10">
       <h2 className="text-2xl">Your WealthGod ！</h2>
       </div>
@@ -53,11 +62,9 @@ export default function Profile() {
 
         </div>
       ) : null}
-
-      {/* <div className="flex mb-20">
-        <WealthGod items={items} />
-      </div> */}
-
+      <div className="flex">
+        <WealthGod items={filteredWealthGods} reverse={false} />
+      </div>
       <div className="flex justify-between ">
         <Link
           href="/open"

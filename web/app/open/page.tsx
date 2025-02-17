@@ -81,7 +81,8 @@ export default function OpenRedEnvelope() {
       },
       () => {
         console.log("Popup cancelled");
-      }
+      },
+      "Do you want to open it?"
     );
   };
 
@@ -98,7 +99,7 @@ export default function OpenRedEnvelope() {
       </header>
 
       <div className="flex justify-between w-full space-x-4">
-        <div className="w-1/2 p-2 justify-start  ">
+        <div className="w-1/2 p-2 justify-start">
           <div className="flex justify-between items-start mb-4">
             <Link
               href="/send"
@@ -114,10 +115,10 @@ export default function OpenRedEnvelope() {
             </Link>
           </div>
           <div className="text-center">
-            <WealthGod items={items} handleOpen={handleOpen}  />
+            <WealthGod items={items} handleOpen={handleOpen} reverse={true}/>
           </div>
         </div>  
-        <div className="">
+        <div className="w-1/2 p-2 justify-start">
           <Leaderboard items={leaderboardData} />
         </div>
       </div>

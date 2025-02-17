@@ -10,6 +10,7 @@ import { ContractsProvider } from "@/context/contractsProvider";
 import {
   ConnectButton,
 } from "@mysten/dapp-kit";
+import { usePopup } from "@/context/PopupProvider";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { createWealthGodTx } from "@/contracts/query";
 import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
@@ -17,6 +18,7 @@ import { isValidSuiAddress } from "@mysten/sui/utils";
 
 export default function SendRedEnvelope() {
   const  account  = useCurrentAccount();
+  const { showPopup } = usePopup();
   const { getDisplayProfile, userProfile } = ContractsProvider();
   const { handleSignAndExecuteTransaction:createWealthGod } = useBetterSignAndExecuteTransaction({tx:createWealthGodTx});
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
@@ -24,7 +26,17 @@ export default function SendRedEnvelope() {
   
   const handleCreateWealthGod = async () => {
     if (account?.address && isValidSuiAddress(account?.address)) {
-      createWealthGod({ description: description, user: userProfile?.id.id??'', sender: account?.address }).execute();
+      createWealthGod({ description: description, user: userProfile?.id.id??'',sender:account?.address}).onSuccess(async (result) => {
+        showPopup(
+          () => {
+            console.log("Popup confirmed");
+          },
+          () => {
+            console.log("Popup cancelled");
+          },
+          "Send God success!!!"
+        )
+      }).execute();
     }
   };
 
