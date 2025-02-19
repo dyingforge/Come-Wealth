@@ -101,7 +101,7 @@ public entry fun createWealthGod(coin:&mut Coin<SUI>,description:String, user:&m
     let value = amount.value();
     let uid = object::new(ctx);
     let id = object::uid_to_inner(&uid);
-    let sender = object::uid_to_address(&user.id);
+    let sender = ctx.sender();
     let wealthGod = WealthGod {
         id: uid,
         sender, 
@@ -136,8 +136,8 @@ public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:
         pool.amount.join(max_amount);
         let sender_coin = coin::take(&mut pool.amount,claim_amount,ctx);
         let recevicer_coin = coin::from_balance(balance::withdraw_all(&mut pool.amount),ctx);
-        wealthGod.claimAmount = wealthGod.claimAmount + claim_amount;
-        user.claimAmount = claim_amount;
+        wealthGod.claimAmount = claim_amount;
+        user.claimAmount = user.claimAmount + claim_amount;
         transfer::public_transfer(wealth_god_coin,ctx.sender());
         transfer::public_transfer(recevicer_coin,ctx.sender());
         transfer::public_transfer(sender_coin,wealthGod.sender);
