@@ -7,7 +7,8 @@ interface WealthGodProps {
   reverse?: boolean;
 }
 
-const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {}, reverse = false }) => {
+const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {} }) => {
+  
   return (
     <div className={`flex flex-wrap gap-5`}>
       {items.map((item, index) => (
@@ -29,16 +30,10 @@ const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {}, rev
               </h2>
               <h2
                 className={`text-[10px] font-DynaPuff ${
-                  reverse ? (item.claimAmount - 1 > 0 ? "text-green-600" : "text-red-600") : (1 - item.claimAmount > 0 ? "text-green-600" : "text-red-600")
+                 ((item.claimAmount/1000000000) - 1 < 0 ? "text-green-600" : "text-red-600")
                 }`}
               >
-                {reverse
-                  ? (item.claimAmount - 1 > 0
-                    ? `Loss: ${Math.abs((item.claimAmount/1000000000)-1).toFixed(2)}`
-                    : `Profit: ${((item.claimAmount/1000000000)-1).toFixed(2)}`)
-                  : (item.claimAmount - 1 > 0
-                    ? `Profit: ${((item.claimAmount/1000000000)-1).toFixed(2)}`
-                    : `Loss: ${Math.abs((item.claimAmount/1000000000)-1).toFixed(2)}`)}
+               profit: {(1 - (item.claimAmount/1000000000)).toFixed(2)}
               </h2>
             </div>
           ) : (
