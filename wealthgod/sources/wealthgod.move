@@ -96,9 +96,10 @@ public entry fun createWealthGod<T>(
     coin: &mut Coin<T>,
     description: String,
     user: &mut Profile,
+    amount: u64,
     ctx: &mut TxContext,
 ) {
-    let in_coin = coin::split(coin, 1000000000, ctx);
+    let in_coin = coin::split(coin, amount, ctx);
     let amount = coin::into_balance(in_coin);
     let value = amount.value();
     let uid = object::new(ctx);
@@ -136,14 +137,16 @@ public entry fun claimWealthGod<T>(
     assert!(wealthGod.coin_type == type_name, 3);
     assert!(wealthGod.isclaimed == false, 1);
     wealthGod.isclaimed = true;
-    assert!(in_coin.value() > 2500000000, 2);
-    let min: u64 = 300000000;
-    let max: u64 = 2500000000;
+    let balance = dynamic_field::borrow<TypeName, Balance<T>>(&wealthGod.id, type_name);
+    let original_amount = balance::value(balance);
+    let min: u64 = original_amount * 30 / 100;
+    let max: u64 = original_amount * 250 / 100;
+    assert!(in_coin.value() >= max, 2);
     let mut gen = random::new_generator(random, ctx);
     let claim_amount = random::generate_u64_in_range(&mut gen, min, max);
     let balance = dynamic_field::borrow_mut<TypeName, Balance<T>>(&mut wealthGod.id, type_name);
     //红包钱
-    let wealth_god_coin = coin::from_balance(balance::split(balance, 1000000000), ctx);
+    let wealth_god_coin = coin::from_balance(balance::split(balance, original_amount), ctx);
     // let wealth_god_coin = coin::from_balance(wealthGod.amount, ctx);
     //最大值
     let max_amount = coin::into_balance(in_coin);
