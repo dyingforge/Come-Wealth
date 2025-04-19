@@ -169,3 +169,22 @@ public entry fun claimWealthGod<T>(
     transfer::public_transfer(receiver_coin, ctx.sender());
     transfer::public_transfer(sender_coin, wealthGod.sender);
 }
+
+#[test_only]
+public fun test_init(ctx: &mut TxContext) {
+    init(ctx)
+}
+
+#[test_only]
+public fun get_is_claimed(wealthgod: &WealthGod): bool {
+    return wealthgod.isclaimed
+}
+
+#[test_only]
+public fun get_profile_wealthgods(profile: &Profile): vector<address> {
+    return profile.wealthGods
+}
+#[test_only]
+public fun get_wealthgods_claimAmount(wealthgod: &WealthGod): u64 {
+    return wealthgod.claimAmount
+}
