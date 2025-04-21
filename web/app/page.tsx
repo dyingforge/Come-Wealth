@@ -1,95 +1,71 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from 'react'
-import { ContractsProvider } from '@/context/contractsProvider';
+import Image from "next/image";
+import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { useRouter } from 'next/navigation';
-import { createProfileTx } from '@/contracts/query';
-import { useBetterSignAndExecuteTransaction } from '@/hooks/useBetterTx';
-import { ConnectButton} from "@mysten/dapp-kit";
-import { queryState } from '@/contracts/query';
-import { useCurrentAccount } from '@mysten/dapp-kit';
-import Image from 'next/image'
+import { useEffect } from 'react';
 
 export default function Register() {
   const currentUser = useCurrentAccount();
-  const [hasProfile, setHasProfile] = useState(false);
   const router = useRouter();
-  const {handleSignAndExecuteTransaction:createProfileHandler} = useBetterSignAndExecuteTransaction({tx:createProfileTx});
-  const [name, setName] = useState('');
 
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const state = await queryState();
-      const userInfo = state.profiles.find((user) => user.owner === currentUser?.address);
-      const profileExists = !!userInfo;
-      setHasProfile(profileExists);
-      
-      if (profileExists) {
-        router.push('/profile');
-      }
-      console.log("hasProfile", profileExists);
-    };
-    fetchData();
-  }, [currentUser]);
-
-
-
-  const handleCreateProfileClick = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    createProfileHandler({ name }).onSuccess(async (result) => {
-      router.push('/profile');
-    }).execute();
-  }
+  const handleButtonClick = () => {
+    if (!currentUser?.address) {
+      alert("Please connect your wallet first!"); // 提示用户连接钱包
+      return;
+    }
+    router.push('/profile'); // 跳转到 Profile 页面
+  };
 
   return (
-    
     <main
-
       className="flex min-h-screen flex-col p-8"
-      style={{ backgroundImage: 'url(/bg.png)' }}
+      style={{ backgroundImage: "url(/bg.png)" }}
     >
-      
       <header className="flex justify-between items-center p-4 bg-red-500 rounded-2xl shadow-md mb-40">
         <div className="flex items-center rounded-full overflow-hidden">
           <Image src="/logo.png" alt="Sui Logo" width={80} height={40} />
         </div>
         <ConnectButton />
       </header>
-    <div className="flex justify-center items-center h-full">
-      <div className=" w-full max-w-md justify-center items-center  bg-white rounded-2xl shadow-xl p-8 space-y-6 bg-red-100">
-        <div className="text-center">
-          <h1 className="mt-4 text-3xl font-DynaPuff text-red-600">Welcome</h1>
-          <h2 className="mt-4 text-2xl font-DynaPuff text-red-400">Start your luck !</h2>
-        </div>
 
-        <form className="space-y-4" onSubmit={handleCreateProfileClick}>
-          <div className="flex justify-start">
-            <div className="flex items-end">
-              <label htmlFor="username" className="text-xl font-DynaPuff text-gray-700">
-                name:
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="ml-2 px-3 py-1 border border-black border-2 rounded-md w-1/2"
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-DynaPuff text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            Register
-          </button>
-        </form>
+      {/* 主要内容 */}
+      <div className="flex flex-col items-center justify-center text-center">
+        <h1
+          className="text-4xl font-DynaPuff md:text-6xl mb-16 mt-8 transition-all duration-500 bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 text-transparent bg-clip-text animate-gradient"
+        >
+          Unwrap the mystery with every red envelope!
+        </h1>
+
+        <button
+          onClick={handleButtonClick}
+          className="bg-gray-800 text-white px-12 py-4 rounded-md text-xl font-medium relative overflow-hidden group"
+        >
+          <span className="relative z-10 font-DynaPuff">
+            Start journey
+          </span>
+          <span className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></span>
+        </button>
       </div>
-      </div>
+
+      <style jsx>{`
+        @keyframes gradient-flow {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient-flow 3s infinite;
+        }
+      `}</style>
     </main>
-  )
+  );
 }
-
