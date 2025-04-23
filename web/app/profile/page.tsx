@@ -2,7 +2,7 @@
 
 import { ConnectButton } from "@mysten/dapp-kit"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import { ContractsProvider } from "@/context/contractsProvider"
 import { queryWealthGods } from "@/contracts/query"
 import type { WealthGod as WealthGodItem } from "@/type"
@@ -16,7 +16,7 @@ import { createProfileTx } from "@/contracts/query"
 import { Coins, Gift, Send, User } from "lucide-react"
 
 export default function Profile() {
-  const { getDisplayProfile } = ContractsProvider()
+  const { getDisplayProfile,userProfile } = ContractsProvider()
   const [filteredWealthGods, setFilteredWealthGods] = useState<WealthGodItem[]>([])
   const account = useCurrentAccount()
   const [displayProfile, setDisplayProfile] = useState<DisplayProfile>()
@@ -30,13 +30,22 @@ export default function Profile() {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        const profile = await getDisplayProfile()
-        setDisplayProfile(profile)
-         console.log(displayProfile)
-        if (!profile) {
-          setIsModalOpen(true)
-        }
+        // 获取配置文件数据
 
+        const profile = await getDisplayProfile()
+        // 直接使用获取到的 profile 进行条件判断
+        // if (!profile) {
+        //   setIsModalOpen(true)
+        // } else {
+        //   // 只在日志中打印获取到的原始数据
+        //   console.log("获取到的个人资料:", profile) // Added back the log statement
+        //   setDisplayProfile(profile)
+        // }
+        setDisplayProfile(profile)
+
+        // 设置状态
+
+        // 获取财富神数据
         const wealthGods = await queryWealthGods()
         const filteredWealthGods = wealthGods
           .filter((wealthGod: WealthGodItem) => wealthGod.sender === account?.address)
@@ -52,6 +61,12 @@ export default function Profile() {
       fetchData()
     }
   }, [account])
+
+      useEffect(() => {
+        setDisplayProfile(displayProfile)
+        console.log("displayProfile 状态已更新:", displayProfile)
+        console.log(displayProfile?.sendAmount)
+      }, [displayProfile])
 
   const handleCreateProfile = async (name: string) => {
     createProfileHandler({ name })
@@ -121,7 +136,8 @@ export default function Profile() {
                       <Gift size={14} /> Claim Amount
                     </span>
                     <span className="text-red-600 text-xl font-bold" style={{ fontFamily: "DynaPuff, cursive" }}>
-                      {(displayProfile.claimAmount / 1000000000).toFixed(2)} SUI
+                      {(displayProfile.claimAmount / 1000000000).toFixed(2)} SUI  
+                      {displayProfile.claimAmount}
                     </span>
                   </div>
                   <div className="bg-red-50 rounded-lg p-4 flex flex-col items-center">
