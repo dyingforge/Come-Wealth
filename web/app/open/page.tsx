@@ -8,7 +8,7 @@ import Leaderboard from "@/components/RankList"
 import { queryAllProfile } from "@/contracts/query"
 import { ContractsProvider } from "@/context/contractsProvider"
 import type { WealthGod as WealthGodItem, LeaderboardItem } from "@/type"
-import { claimWealthGodTx } from "@/contracts/query"
+import { claimWealthGodTx,getUserProfileCoin } from "@/contracts/query"
 import { useBetterSignAndExecuteTransaction } from "@/hooks/useBetterTx"
 import { ConnectButton } from "@mysten/dapp-kit"
 import Image from "next/image"
@@ -29,12 +29,21 @@ export default function OpenRedEnvelope() {
 
   const handleClaimClick = async (index: number) => {
     try {
+      const coins = await getUserProfileCoin(account?.address ?? "")
       const userProfile = await getDisplayProfile()
+      const coin = coins.filter((coin) => coin.type.split('::').pop() === items[index].coin_type.fields.name.split('::').pop())
+      console.log("coin", coins);
+      console.log("item",items[index].coin_type.fields.name);
+      const coinId = coin[0]?.id;
+      console.log("coin", coinId)
       if (account?.address && isValidSuiAddress(account?.address)) {
         claimWealthGod({
           wealthGod: items[index].id.id,
           user: userProfile?.id.id ?? "",
           sender: account?.address,
+          amount: items[index].coin?.value ?? 0,
+          in_coin: coinId,
+          coin_type: coins[0]?.type,
         })
           .onSuccess(async () => {
             const wealthGods = await getWealthGods()
@@ -67,14 +76,7 @@ export default function OpenRedEnvelope() {
         // Filter unclaimed wealth gods and prepare leaderboard data
         const filteredWealthGods = wealthGods
           .filter((wealthGod) => !wealthGod.isclaimed)
-          .map((wealthGod) => ({
-            id: wealthGod.id,
-            amount: wealthGod.amount,
-            description: wealthGod.description,
-            sender: wealthGod.sender,
-            claimAmount: wealthGod.claimAmount,
-            isclaimed: false,
-          }))
+    
         setItems(filteredWealthGods)
 
         // Set leaderboard data sorted by claim amount
@@ -97,7 +99,7 @@ export default function OpenRedEnvelope() {
     if (account) {
       fetchData()
     }
-  }, [account, getWealthGods])
+  }, [account])
 
   const handleOpen = (index: number) => {
     showPopup(
