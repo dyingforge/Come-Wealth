@@ -24,7 +24,6 @@ export default function Register() {
       const userInfo = state.profiles.find((user) => user.owner === currentUser?.address);
       const profileExists = !!userInfo;
       setHasProfile(profileExists);
-      
       if (profileExists) {
         router.push('/profile');
       }

@@ -14,7 +14,7 @@ export default function Register() {
       alert("Please connect your wallet first!"); // 提示用户连接钱包
       return;
     }
-    router.push('/profile'); // 跳转到 Profile 页面
+    router.push('/register'); // 跳转到 Profile 页面
   };
 
   return (
