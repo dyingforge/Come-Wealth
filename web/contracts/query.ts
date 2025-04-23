@@ -1,37 +1,73 @@
 import { isValidSuiAddress } from "@mysten/sui/utils";
 import { suiClient } from "./index";
-import { SuiObjectResponse, SuiParsedData } from "@mysten/sui/client";
+import { SuiObjectResponse, SuiParsedData,CoinMetadata } from "@mysten/sui/client";
 import { categorizeSuiObjects, CategorizedObjects } from "@/utils/assetsHelpers";
 import { WealthGod } from "@/type";
 import { createBetterTxFactory, networkConfig } from "./index";
-import { State, ProfileCreated, WealthGodCreated, Profile } from "@/type";
-import { Transaction } from "@mysten/sui/transactions";
+import { State, ProfileCreated, WealthGodCreated, Profile,WealthGodData,SuiCoin } from "@/type";
+import queryWealthDataContext from "./graphqlContext"
+import {SuiGraphQLClient} from "@mysten/sui/graphql";
 
-export const getUserProfile = async (address: string): Promise<CategorizedObjects> => {
+const graphqlClient = new SuiGraphQLClient({
+  url: `https://sui-testnet.mystenlabs.com/graphql`,
+});
+export async function getWealthDynamicFields(wealthId: string) {
+  const result = await graphqlClient.query({
+    query: queryWealthDataContext,
+    variables: { address: wealthId }
+  });
+
+  // 处理返回的数据
+  const WealthData = result.data?.object?.dynamicFields?.nodes?.map((node) => {
+    const nameJson = node.name as { json: { name: string } };
+    const valueJson = node.value as { json: { value: string } }; // Changed unknown to string to match FolderData type
+    return {
+        name: nameJson.json.name,
+        value: Number(valueJson.json.value)
+    }as WealthGodData
+}) ?? [];
+
+  return WealthData;
+}
+
+
+
+export const getUserProfileCoin = async (address: string) => {
   if (!isValidSuiAddress(address)) {
     throw new Error("Invalid Sui address");
   }
-
-  let hasNextPage = true;
-  let nextCursor: string | null = null;
-  let allObjects: SuiObjectResponse[] = [];
-
-  while (hasNextPage) {
-    const response = await suiClient.getOwnedObjects({
+  // export type SuiObject = {
+  //   id: string,
+  //   type: string,
+  //   coinMetadata?: CoinMetadata,
+  //   balance?: number,
+  // }
+    const response = await suiClient.getCoins({
       owner: address,
-      options: {
-        showContent: true,
-      },
-      cursor: nextCursor,
     });
 
-    allObjects = allObjects.concat(response.data);
-    hasNextPage = response.hasNextPage;
-    nextCursor = response.nextCursor ?? null;
-  }
-
-  return categorizeSuiObjects(allObjects);
+    const coins = await Promise.all(response.data.map(async(coinContent) => {
+      const coindata = await suiClient.getCoinMetadata({
+        coinType: coinContent.coinType,
+        }) as CoinMetadata;
+      const coin = {
+        id: coinContent.coinObjectId,
+        type: coinContent.coinType,
+        coinMetadata: coindata,
+        balance: Number(coinContent.balance),
+      }as SuiCoin;
+      return coin;
+    }));
+  return coins;
 };
+
+export const queryCoinMetadata = async (coinTypes: string) => {
+  const coin = await suiClient.getCoinMetadata({
+      coinType: coinTypes,
+      }) as CoinMetadata;
+  return coin;
+}
+
 
 export const queryState = async () => {
   const events = await suiClient.queryEvents({
@@ -73,7 +109,8 @@ export const queryWealthGods = async (): Promise<WealthGod[]> => {
   // 使用 Promise.all 来并行获取每个财富神的详细信息
   const wealthGodPromises = events.data.map(async (event) => {
     const WealthGodCreated = event.parsedJson as WealthGodCreated;
-    
+    const wealthGodData = await getWealthDynamicFields(WealthGodCreated.id);
+
     // 获取财富神的对象
     const wealthGodFirst = await suiClient.getObject({
       id: WealthGodCreated.id,
@@ -90,6 +127,7 @@ export const queryWealthGods = async (): Promise<WealthGod[]> => {
 
     // 返回解析后的财富神对象
     const wealthGod = parsedWealthGod.fields as unknown as WealthGod;
+    wealthGod.coin = wealthGodData.find((coin) => coin.name === wealthGod.coin_type.fields.name);
     return wealthGod;
   });
 
@@ -126,32 +164,6 @@ export const queryProfile = async (address: string) => {
 }
 
 
-
-export const queryWealthGod = async (address: string) => {
-  if (!isValidSuiAddress(address)) {
-    throw new Error("Invalid wealthGod address");
-  }
-  const profileContent = await suiClient.getObject({
-    id: address,
-    options: {
-      showContent: true,
-    },
-  })
-  if (!profileContent.data?.content) {
-    throw new Error("WealthGod content not found");
-  }
-
-  const parsedWealthGod = profileContent.data.content as SuiParsedData;
-  if (!('fields' in parsedWealthGod)) {
-    throw new Error("Invalid wealthGod data structure");
-  }
-
-  const wealthGod = parsedWealthGod.fields as unknown as WealthGod;
-  if (!wealthGod) {
-    throw new Error("Failed to parse wealthGod data");
-  }
-  return wealthGod;
-}
 // public entry fun create_profile(
 //   state: &mut State,
 //   name: String,
@@ -189,83 +201,142 @@ export const createProfileTx = createBetterTxFactory<{ name: string }>((tx, netw
 })
 
 
-// public entry fun createWealthGod(coin:&mut Coin<SUI>,description:String, user:&mut Profile,ctx: &mut TxContext) {
-//   let in_coin = coin::split(coin, 1000000000, ctx);
+// public entry fun createWealthGod<T>(
+//   coin: &mut Coin<T>,
+//   description: String,
+//   user: &mut Profile,
+//   amount: u64,
+//   ctx: &mut TxContext,
+// ) {
+//   let in_coin = coin::split(coin, amount, ctx);
 //   let amount = coin::into_balance(in_coin);
 //   let value = amount.value();
 //   let uid = object::new(ctx);
 //   let id = object::uid_to_inner(&uid);
-//   let sender = object::uid_to_address(&user.id);
-//   let wealthGod = WealthGod {
+//   let sender = ctx.sender();
+//   let type_name = type_name::get<T>();
+
+//   let mut wealthGod = WealthGod {
 //       id: uid,
-//       sender, 
+//       sender,
 //       isclaimed: false,
-//       amount,
 //       description,
-//       claimAmount:0,
+//       coin_type: type_name,
+//       claimAmount: 0,
 //   };
+//   dynamic_field::add(&mut wealthGod.id, type_name, amount);
 //   user.sendAmount = user.sendAmount + value;
-//   event::emit(WealthGodCreated{
-//           id,
-//           sender,
+//   event::emit(WealthGodCreated {
+//       id,
+//       sender,
 //   });
 //   vector::push_back(&mut user.wealthGods, object::id_to_address(&id));
 //   transfer::share_object(wealthGod);
 // }
 
-export const createWealthGodTx = createBetterTxFactory<{ description: string, user: string,sender:string }>((tx, networkVariables, params) => {
-  const { description, user } = params;
-  const payment = 1000000000;
-  const [coin] = tx.splitCoins(tx.gas, [payment]);
-
+export const createWealthGodTx = createBetterTxFactory<{ sender:string,coin:string,description: string, amount: number, user: string, coin_type: string }>((tx, networkVariables, params) => {
+  if(params.coin_type === "0x2::sui::SUI"){
+    const splitResult = tx.splitCoins(tx.gas, [tx.pure.u64(params.amount)]);
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
     function: "createWealthGod",
     arguments: [
-      tx.object(coin),
-      tx.pure.string(description),
-      tx.object(user),],
+      tx.object(splitResult),
+      tx.pure.string(params.description),
+      tx.object(params.user),
+      tx.pure.u64(params.amount),
+    ],
+    typeArguments: [params.coin_type]
   })
-  tx.transferObjects([coin], params.sender);
+  tx.transferObjects([splitResult], params.sender);
   return tx;
-  
+}else{
+  const splitResult = tx.splitCoins(tx.object(params.coin), [tx.pure.u64(params.amount)]);
+  tx.moveCall({
+    package: networkVariables.package,
+    module: "wealthgod",
+    function: "createWealthGod",
+    arguments: [
+      tx.object(splitResult),
+      tx.pure.string(params.description),
+      tx.object(params.user),
+      tx.pure.u64(params.amount),
+    ],
+    typeArguments: [params.coin_type]
+  })
+  return tx;
+}
 })
 
 
-// public entry fun claimWealthGod(wealthGod:&mut WealthGod,in_coin:Coin<SUI>,pool:&mut WeathPool,user:&mut Profile,random:&Random,ctx: &mut TxContext){
-//   assert!(wealthGod.isclaimed == false,1);
+// public entry fun claimWealthGod<T>(
+//   wealthGod: &mut WealthGod,
+//   in_coin: Coin<T>,
+//   pool: &mut WeathPool,
+//   user: &mut Profile,
+//   random: &Random,
+//   ctx: &mut TxContext,
+// ) {
+//   let type_name = type_name::get<T>();
+//   assert!(wealthGod.coin_type == type_name, 3);
+//   assert!(wealthGod.isclaimed == false, 1);
 //   wealthGod.isclaimed = true;
-//   assert!(in_coin.value() > 2500000000,2);
-//   let min:u64  = 300000000;
-//   let max:u64  = 2500000000; 
+//   let balance = dynamic_field::borrow<TypeName, Balance<T>>(&wealthGod.id, type_name);
+//   let original_amount = balance::value(balance);
+//   let min: u64 = original_amount * 30 / 100;
+//   let max: u64 = original_amount * 250 / 100;
+//   assert!(in_coin.value() >= max, 2);
 //   let mut gen = random::new_generator(random, ctx);
 //   let claim_amount = random::generate_u64_in_range(&mut gen, min, max);
+//   let balance = dynamic_field::borrow_mut<TypeName, Balance<T>>(&mut wealthGod.id, type_name);
 //   //红包钱
-//   let wealth_god_coin = coin::take(&mut wealthGod.amount,1000000000,ctx);
+//   let wealth_god_coin = coin::from_balance(balance::split(balance, original_amount), ctx);
 //   // let wealth_god_coin = coin::from_balance(wealthGod.amount, ctx);
 //   //最大值
 //   let max_amount = coin::into_balance(in_coin);
-//   pool.amount.join(max_amount);
-//   let sender_coin = coin::take(&mut pool.amount,claim_amount,ctx);
-//   let recevicer_coin = coin::from_balance(balance::withdraw_all(&mut pool.amount),ctx);
-//   wealthGod.claimAmount = wealthGod.claimAmount + claim_amount;
-//   user.claimAmount = claim_amount;
-//   transfer::public_transfer(wealth_god_coin,ctx.sender());
-//   transfer::public_transfer(recevicer_coin,ctx.sender());
-//   transfer::public_transfer(sender_coin,wealthGod.sender);
+//   // 确保池子中有对应币种的余额
+//   if (!dynamic_field::exists_(&pool.id, type_name)) {
+//       dynamic_field::add(&mut pool.id, type_name, balance::zero<T>());
+//   };
+
+//   let pool_balance = dynamic_field::borrow_mut<TypeName, Balance<T>>(&mut pool.id, type_name);
+//   balance::join(pool_balance, max_amount);
+
+//   // 从池中取出相应数量的代币
+//   let sender_coin = coin::from_balance(balance::split(pool_balance, claim_amount), ctx);
+//   let receiver_coin = coin::from_balance(balance::withdraw_all(pool_balance), ctx);
+
+//   wealthGod.claimAmount = claim_amount;
+//   user.claimAmount = user.claimAmount + claim_amount;
+
+//   transfer::public_transfer(wealth_god_coin, ctx.sender());
+//   transfer::public_transfer(receiver_coin, ctx.sender());
+//   transfer::public_transfer(sender_coin, wealthGod.sender);
 // }
 
-export const claimWealthGodTx = createBetterTxFactory<{ wealthGod: string, user: string,sender:string }>((tx, networkVariables, params) => {
-  const { wealthGod, user } = params;
-  const payment = 2600000000;
-  const [coin] = tx.splitCoins(tx.gas, [payment]);
-
+export const claimWealthGodTx = createBetterTxFactory<{ sender: string,amount:number, wealthGod: string, in_coin: string, user: string, coin_type: string }>((tx, networkVariables, params) => {
+  if(params.coin_type === "0x2::sui::SUI"){
+    const intAmount = Math.ceil(params.amount * 2.5);
+  let coin = tx.splitCoins(tx.gas, [tx.pure.u64(intAmount)]);
   tx.moveCall({
     package: networkVariables.package,
     module: "wealthgod",
     function: "claimWealthGod",
-    arguments: [tx.object(wealthGod), coin, tx.object(networkConfig.testnet.variables.wealthGodPool), tx.object(user), tx.object("0x8")]
+    arguments: [tx.object(params.wealthGod), tx.object(coin), tx.object(networkConfig.testnet.variables.wealthGodPool), tx.object(params.user), tx.object("0x8"),
+    ],
+    typeArguments: [params.coin_type]  
   })
   return tx;
+}else{
+  tx.moveCall({
+    package: networkVariables.package,
+    module: "wealthgod",
+    function: "claimWealthGod",
+    arguments: [tx.object(params.wealthGod), tx.object(params.in_coin), tx.object(networkConfig.testnet.variables.wealthGodPool), tx.object(params.user), tx.object("0x8"),
+    ],
+    typeArguments: [params.coin_type]  
+  })
+  return tx;
+}
 })
