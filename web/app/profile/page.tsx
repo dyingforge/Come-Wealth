@@ -19,7 +19,7 @@ export default function Profile() {
   const { getDisplayProfile } = ContractsProvider()
   const [filteredWealthGods, setFilteredWealthGods] = useState<WealthGodItem[]>([])
   const account = useCurrentAccount()
-  const [displayProfile, setDisplayProfile] = useState<DisplayProfile | undefined>(undefined)
+  const [displayProfile, setDisplayProfile] = useState<DisplayProfile>()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const { handleSignAndExecuteTransaction: createProfileHandler } = useBetterSignAndExecuteTransaction({
@@ -32,7 +32,7 @@ export default function Profile() {
       try {
         const profile = await getDisplayProfile()
         setDisplayProfile(profile)
-
+         console.log(displayProfile)
         if (!profile) {
           setIsModalOpen(true)
         }
@@ -40,14 +40,7 @@ export default function Profile() {
         const wealthGods = await queryWealthGods()
         const filteredWealthGods = wealthGods
           .filter((wealthGod: WealthGodItem) => wealthGod.sender === account?.address)
-          .map((wealthGod: WealthGodItem) => ({
-            id: wealthGod.id,
-            amount: wealthGod.amount,
-            description: wealthGod.description,
-            sender: wealthGod.sender,
-            claimAmount: wealthGod.claimAmount,
-            isclaimed: wealthGod.isclaimed,
-          }))
+          
         setFilteredWealthGods(filteredWealthGods ?? [])
       } catch (error) {
         console.error("Error fetching data:", error)
@@ -55,11 +48,10 @@ export default function Profile() {
         setIsLoading(false)
       }
     }
-
     if (account) {
       fetchData()
     }
-  }, [account, getDisplayProfile])
+  }, [account])
 
   const handleCreateProfile = async (name: string) => {
     createProfileHandler({ name })

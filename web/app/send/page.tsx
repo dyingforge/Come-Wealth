@@ -1,15 +1,15 @@
 'use client'
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import Leaderboard from "@/components/RankList"
 import { queryAllProfile } from "@/contracts/query"
-import { LeaderboardItem } from "@/type"
+import { LeaderboardItem,SuiCoin } from "@/type"
 import { ContractsProvider } from "@/context/contractsProvider"
 import { ConnectButton } from "@mysten/dapp-kit"
 import { usePopup } from "@/context/PopupProvider"
 import { useCurrentAccount } from "@mysten/dapp-kit"
-import { createWealthGodTx } from "@/contracts/query"
+import { createWealthGodTx,getUserProfileCoin } from "@/contracts/query"
 import { useBetterSignAndExecuteTransaction } from "@/hooks/useBetterTx"
 import { isValidSuiAddress } from "@mysten/sui/utils"
 import {  Gift, Send, Trophy, User } from 'lucide-react'
@@ -17,22 +17,27 @@ import {  Gift, Send, Trophy, User } from 'lucide-react'
 export default function SendRedEnvelope() {
   const account = useCurrentAccount()
   const { showPopup } = usePopup()
-  const { userProfile } = ContractsProvider()
+  const { getDisplayProfile } = ContractsProvider()
   const { handleSignAndExecuteTransaction: createWealthGod } = useBetterSignAndExecuteTransaction({
     tx: createWealthGodTx,
   })
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([])
   const [description, setDescription] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [amount, setAmount] = useState<number>(1)
   const [isSending, setIsSending] = useState(false)
+  const [selectedCoin, setSelectedCoin] = useState<SuiCoin>()
+  const [coin, setCoin] = useState<SuiCoin[]>()
 
   // 获取排行榜数据，避免每次描述改变时触发
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
       try {
+        const coins = await getUserProfileCoin(account?.address ?? "")
+        console.log(coins)
+        setCoin(coins)
         const profiles = await queryAllProfile()
-
         if (profiles && profiles.length > 0) {
           setLeaderboardData(
             profiles
@@ -56,7 +61,7 @@ export default function SendRedEnvelope() {
     }
   }, [account]) 
 
-  const handleCreateWealthGod = async () => {
+  const handleCreateWealthGod = async (coin: SuiCoin) => {
     if (!description.trim()) {
       showPopup(
         () => {},
@@ -65,31 +70,50 @@ export default function SendRedEnvelope() {
       )
       return
     }
+    
+    if (!amount || amount <= 0) {
+      showPopup(
+        () => {},
+        () => {},
+        "Please enter a valid amount"
+      )
+      return
+    }
 
     if (account?.address && isValidSuiAddress(account?.address)) {
-      setIsSending(true)
-      createWealthGod({ description: description, user: userProfile?.id.id ?? "", sender: account?.address })
-        .onSuccess(async (result) => {
-          showPopup(
-            () => {
-              console.log("Popup confirmed")
-              setDescription("") // Reset description after success
-            },
-            () => {
-              console.log("Popup cancelled")
-            },
-            "Blessing sent successfully! 🎉"
-          )
-        })
-        .onError((error) => {
-          showPopup(
-            () => {},
-            () => {},
-            "Failed to send blessing. Please try again."
-          )
-          console.error("Error sending blessing:", error)
-        })
-        .execute()
+      setIsSending(true)      
+      const userProfile = await getDisplayProfile()
+      console.log(coin.type,coin.id,userProfile?.id.id)
+      createWealthGod({ 
+        description: description, 
+        user: userProfile?.id.id ?? "", 
+        amount: amount, 
+        coin_type: coin.type, 
+        coin: coin.id,
+        sender: account?.address,
+      })
+      .onSuccess(async (result) => {
+        showPopup(
+          () => {
+            console.log("Popup confirmed")
+            setDescription("") // Reset description after success
+            setAmount(1) // Reset amount after success
+          },
+          () => {
+            console.log("Popup cancelled")
+          },
+          "Blessing sent successfully! 🎉"
+        )
+      })
+      .onError((error) => {
+        showPopup(
+          () => {},
+          () => {},
+          "Failed to send blessing. Please try again."
+        )
+        console.error("Error sending blessing:", error)
+      })
+      .execute()
     }
   }
 
@@ -186,15 +210,81 @@ export default function SendRedEnvelope() {
                     className="w-full px-4 py-3 rounded-lg border-2 border-red-200 bg-red-50 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all resize-none"
                     style={{ fontFamily: "Arial, sans-serif" }}
                   />
+                  <label
+                    htmlFor="coin"             
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                    style={{ fontFamily: "DynaPuff, cursive" }}
+                  >
+                    Coin
+                  </label>
+                  <select
+                    name="coin"
+                    id="coin"
+                    value={selectedCoin?.id || ""}
+                    onChange={(e) => {
+                      const selected = coin?.find(c => c.id === e.target.value);
+                      setSelectedCoin(selected);
+                    }}                  
+                    className="w-full px-4 py-3 rounded-lg border-2 border-red-200 bg-red-50 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                    style={{ fontFamily: "Arial, sans-serif" }}
+                  >
+                    <option value="" disabled>Select your coin</option>
+                    {coin && coin.length > 0 ? (
+                      coin.map((c, index) => {
+                        // 提取币种名称，无论是SUI还是其他代币
+                        const coinName = c.type.split('::').pop() || c.type;
+                        // 格式化余额，保留两位小数
+                        const formattedBalance = Number(c.balance).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 6
+                        });
+                        return (
+                          <option key={index} value={c.id}>
+                            {coinName} - {formattedBalance}
+                          </option>
+                        );
+                      })
+                    ) : (
+                      <option value="" disabled>No coins available</option>
+                    )}
+                  </select>
                 </div>
+                  <label
+                    htmlFor="Amount"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                    style={{ fontFamily: "DynaPuff, cursive" }}
+                  >
+                    Amount
+                  </label>
+                  <input
+                    type="number"
+                    name="amount"
+                    id="amount"
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    placeholder="Enter amount"
+                    className="w-full px-4 py-3 rounded-lg border-2 border-red-200 bg-red-50 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                    style={{ fontFamily: "Arial, sans-serif" }}
+                  />
+
 
                 <button
                   type="button"
                   className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg shadow-md text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition-colors ${
                     isSending ? "opacity-70 cursor-not-allowed" : ""
                   }`}
-                  onClick={handleCreateWealthGod}
-                  disabled={isSending}
+                  onClick={() => {
+                    if (selectedCoin) {
+                      handleCreateWealthGod(selectedCoin);
+                    } else {
+                      showPopup(
+                        () => {},
+                        () => {},
+                        "Please select a coin"
+                      );
+                    }
+                  }}
+                  disabled={isSending || !selectedCoin}
                   style={{ fontFamily: "DynaPuff, cursive" }}
                 >
                   {isSending ? (
@@ -205,7 +295,7 @@ export default function SendRedEnvelope() {
                   ) : (
                     <>
                       <Send size={18} />
-                      <span>Send 1 SUI</span>
+                      <span>Send</span>
                     </>
                   )}
                 </button>
