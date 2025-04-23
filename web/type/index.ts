@@ -1,4 +1,6 @@
-
+import { CoinMetadata } from '@mysten/sui/client';
+  
+  
   export interface DisplayProfile {
       id: {id:string};
       name: string;
@@ -7,8 +9,18 @@
       wealthGods: WealthGod[];
   }
 
-
+  export interface WealthGodData{
+    name: string;
+    value: number;
+  }
   
+  export interface SuiCoin  {
+    id: string,
+    type: string,
+    coinMetadata?: CoinMetadata,
+    balance?: number,
+  }
+
   export interface LeaderboardItem {
     id: string;
     name: string;
@@ -28,8 +40,9 @@
       sender: string;
       description: string;
       isclaimed: boolean;
-      amount: number;
       claimAmount: number;
+      coin_type: {fields:{name:string}};
+      coin?: WealthGodData;
   }
 
   export interface State {
