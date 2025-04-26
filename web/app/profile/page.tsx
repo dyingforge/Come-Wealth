@@ -43,8 +43,6 @@ export default function Profile() {
         // }
         setDisplayProfile(profile)
 
-        // 设置状态
-
         // 获取财富神数据
         const wealthGods = await queryWealthGods()
         const filteredWealthGods = wealthGods
@@ -137,7 +135,6 @@ export default function Profile() {
                     </span>
                     <span className="text-red-600 text-xl font-bold" style={{ fontFamily: "DynaPuff, cursive" }}>
                       {(displayProfile.claimAmount / 1000000000).toFixed(2)} SUI  
-                      {displayProfile.claimAmount}
                     </span>
                   </div>
                   <div className="bg-red-50 rounded-lg p-4 flex flex-col items-center">
@@ -165,7 +162,7 @@ export default function Profile() {
               <div className="p-4">
                 {filteredWealthGods.length > 0 ? (
                  <div className="border-2 border-red-500 rounded-lg p-4">
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                 <div className="grid grid-cols-1 gap-4">
                    <WealthGod items={filteredWealthGods} reverse={false} />
                  </div>
                </div>

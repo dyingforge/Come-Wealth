@@ -38,6 +38,7 @@ export default function SendRedEnvelope() {
         console.log(coins)
         setCoin(coins)
         const profiles = await queryAllProfile()
+
         if (profiles && profiles.length > 0) {
           setLeaderboardData(
             profiles
@@ -55,7 +56,6 @@ export default function SendRedEnvelope() {
         setIsLoading(false)
       }
     }
-
     if (account) {
       fetchData()
     }
@@ -87,12 +87,13 @@ export default function SendRedEnvelope() {
       createWealthGod({ 
         description: description, 
         user: userProfile?.id.id ?? "", 
-        amount: amount, 
+        amount: amount*1000000000, 
         coin_type: coin.type, 
         coin: coin.id,
         sender: account?.address,
       })
       .onSuccess(async (result) => {
+        setIsSending(false);  // 重置发送状态
         showPopup(
           () => {
             console.log("Popup confirmed")
@@ -106,6 +107,7 @@ export default function SendRedEnvelope() {
         )
       })
       .onError((error) => {
+        setIsSending(false);  // 重置发送状态
         showPopup(
           () => {},
           () => {},
@@ -230,20 +232,28 @@ export default function SendRedEnvelope() {
                   >
                     <option value="" disabled>Select your coin</option>
                     {coin && coin.length > 0 ? (
-                      coin.map((c, index) => {
-                        // 提取币种名称，无论是SUI还是其他代币
-                        const coinName = c.type.split('::').pop() || c.type;
-                        // 格式化余额，保留两位小数
-                        const formattedBalance = Number(c.balance).toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 6
+                      (() => {
+                        // 创建一个映射存储每种类型的第一个币对象
+                        const uniqueCoins = new Map();
+                        
+                        // 遍历所有币，只保留每种类型的第一个
+                        coin.forEach(c => {
+                          const coinType = c.type;
+                          if (!uniqueCoins.has(coinType)) {
+                            uniqueCoins.set(coinType, c);
+                          }
                         });
-                        return (
-                          <option key={index} value={c.id}>
-                            {coinName} - {formattedBalance}
-                          </option>
-                        );
-                      })
+                        
+                        // 将唯一币种转换为数组并渲染
+                        return Array.from(uniqueCoins.values()).map((c, index) => {
+                          const coinName = c.type.split('::').pop() || c.type;
+                          return (
+                            <option key={index} value={c.id}>
+                              {coinName}
+                            </option>
+                          );
+                        });
+                      })()
                     ) : (
                       <option value="" disabled>No coins available</option>
                     )}
@@ -257,12 +267,17 @@ export default function SendRedEnvelope() {
                     Amount
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     name="amount"
                     id="amount"
                     value={amount}
-                    onChange={(e) => setAmount(Number(e.target.value))}
+                    onChange={(e) => {
+                      // 只允许数字输入
+                      const value = e.target.value.replace(/[^0-9.]/g, '');
+                      setAmount(value === '' ? 0 : Number(value));
+                    }}
                     placeholder="Enter amount"
+                    inputMode="decimal"
                     className="w-full px-4 py-3 rounded-lg border-2 border-red-200 bg-red-50 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
                     style={{ fontFamily: "Arial, sans-serif" }}
                   />

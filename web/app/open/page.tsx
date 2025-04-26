@@ -32,10 +32,7 @@ export default function OpenRedEnvelope() {
       const coins = await getUserProfileCoin(account?.address ?? "")
       const userProfile = await getDisplayProfile()
       const coin = coins.filter((coin) => coin.type.split('::').pop() === items[index].coin_type.fields.name.split('::').pop())
-      console.log("coin", coins);
-      console.log("item",items[index].coin_type.fields.name);
       const coinId = coin[0]?.id;
-      console.log("coin", coinId)
       if (account?.address && isValidSuiAddress(account?.address)) {
         claimWealthGod({
           wealthGod: items[index].id.id,

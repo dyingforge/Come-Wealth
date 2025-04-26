@@ -31,8 +31,8 @@ export function Popup({ isOpen, onConfirm, onCancel,content }: PopupProps) {
         <div
           className="relative flex flex-col items-center justify-center p-6 pt-8 bg-gradient-to-r from-red-600 to-purple-700 rounded-lg shadow-lg text-white"
           style={{
-            width: "340px",
-            height: "240px",
+            width: "480px",
+            height: "300px",
             backgroundSize: "cover",
           }}
         >
