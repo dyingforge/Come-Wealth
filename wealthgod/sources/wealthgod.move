@@ -10,12 +10,11 @@ module wealthgod::wealthgod;
 use std::ascii::String as AString;
 use std::string::String;
 use std::type_name::{Self, TypeName};
-use sui::balance::{Self, Balance};
+use sui::balance::{Self, Balance, value};
 use sui::coin::{Self, Coin};
 use sui::dynamic_field;
 use sui::event;
 use sui::random::{Self, Random};
-use sui::sui::SUI;
 use sui::table::{Self, Table};
 
 //strcut
@@ -25,6 +24,7 @@ public struct WealthGod has key {
     description: String,
     isclaimed: bool,
     claimAmount: u64,
+    send_amount: u64,
     coin_type: TypeName,
     //dynamicfield
 }
@@ -112,6 +112,7 @@ public entry fun createWealthGod<T>(
         sender,
         isclaimed: false,
         description,
+        send_amount: value,
         coin_type: type_name,
         claimAmount: 0,
     };
