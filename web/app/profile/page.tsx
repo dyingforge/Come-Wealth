@@ -2,6 +2,7 @@
 
 import { ConnectButton } from "@mysten/dapp-kit"
 import Link from "next/link"
+import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react"
 import { ContractsProvider } from "@/context/contractsProvider"
 import { queryWealthGods } from "@/contracts/query"
@@ -18,6 +19,7 @@ import { Coins, Gift, Send, User } from "lucide-react"
 export default function Profile() {
   const { getDisplayProfile,userProfile } = ContractsProvider()
   const [filteredWealthGods, setFilteredWealthGods] = useState<WealthGodItem[]>([])
+  const router = useRouter();
   const account = useCurrentAccount()
   const [displayProfile, setDisplayProfile] = useState<DisplayProfile>()
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -35,8 +37,12 @@ export default function Profile() {
       setIsLoading(true)
       try {
         // 获取配置文件数据
-
+        
         const profile = await getDisplayProfile()
+        if (!profile) {
+          router.push('/register');
+          return; // 中止后续操作
+        }
         // 直接使用获取到的 profile 进行条件判断
         // if (!profile) {
         //   setIsModalOpen(true)

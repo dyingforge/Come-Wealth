@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePopup } from "@/context/PopupProvider"
+import { useRouter } from 'next/navigation';
 import WealthGod from "@/components/wealthGod"
 import Leaderboard from "@/components/RankList"
 import { queryAllProfile } from "@/contracts/query"
 import { ContractsProvider } from "@/context/contractsProvider"
-import type { WealthGod as WealthGodItem, LeaderboardItem } from "@/type"
+import type { WealthGod as WealthGodItem, LeaderboardItem,DisplayProfile } from "@/type"
 import { claimWealthGodTx,getUserProfileCoin } from "@/contracts/query"
 import { useBetterSignAndExecuteTransaction } from "@/hooks/useBetterTx"
 import { ConnectButton } from "@mysten/dapp-kit"
@@ -20,9 +21,11 @@ import { get } from "node:http"
 export default function OpenRedEnvelope() {
   const { getWealthGods, getDisplayProfile,getAllProfiles } = ContractsProvider()
   const account = useCurrentAccount()
+  const router = useRouter();
   const { showPopup } = usePopup()
   const [items, setItems] = useState<WealthGodItem[]>([])
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([])
+  const [displayProfile, setDisplayProfile] = useState<DisplayProfile>()
   const [isLoading, setIsLoading] = useState(true)
   const { handleSignAndExecuteTransaction: claimWealthGod } = useBetterSignAndExecuteTransaction({
     tx: claimWealthGodTx,
@@ -83,6 +86,11 @@ export default function OpenRedEnvelope() {
     const fetchData = async () => {
       setIsLoading(true)
       try {
+      const profile = await getDisplayProfile()
+      if (!profile) {
+        router.push('/register');
+        return; // 中止后续操作
+      }
         // Fetch profiles and wealth gods
         const profiles = await getAllProfiles()
         const wealthGods = await getWealthGods()

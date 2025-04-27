@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect } from "react"
+import { useRouter } from 'next/navigation';
 import Image from "next/image"
 import Link from "next/link"
 import Leaderboard from "@/components/RankList"
 import { queryAllProfile } from "@/contracts/query"
-import { LeaderboardItem,SuiCoin } from "@/type"
+import { LeaderboardItem,SuiCoin,DisplayProfile } from "@/type"
 import { ContractsProvider } from "@/context/contractsProvider"
 import { ConnectButton } from "@mysten/dapp-kit"
 import { usePopup } from "@/context/PopupProvider"
@@ -16,6 +17,7 @@ import {  Gift, Send, Trophy, User } from 'lucide-react'
 
 export default function SendRedEnvelope() {
   const account = useCurrentAccount()
+  const router = useRouter();
   const { showPopup } = usePopup()
   const { getDisplayProfile } = ContractsProvider()
   const { handleSignAndExecuteTransaction: createWealthGod } = useBetterSignAndExecuteTransaction({
@@ -24,6 +26,7 @@ export default function SendRedEnvelope() {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([])
   const [description, setDescription] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [displayProfile, setDisplayProfile] = useState<DisplayProfile>()
   const [amount, setAmount] = useState<number>(1)
   const [isSending, setIsSending] = useState(false)
   const [selectedCoin, setSelectedCoin] = useState<SuiCoin>()
@@ -34,6 +37,15 @@ export default function SendRedEnvelope() {
     const fetchData = async () => {
       setIsLoading(true)
       try {
+        const profile = await getDisplayProfile()
+        
+        // 如果没有找到用户资料，重定向到注册页面
+        if (!profile) {
+          router.push('/register');
+          return; // 中止后续操作
+        }
+        setDisplayProfile(profile)
+        console.log("获取到的个人资料:", profile) // Added back the log statement
         const coins = await getUserProfileCoin(account?.address ?? "")
         console.log(coins)
         setCoin(coins)
@@ -60,26 +72,6 @@ export default function SendRedEnvelope() {
       fetchData()
     }
   }, [account]) 
-
-  // 添加排行榜更新函数
-  const updateLeaderboard = async () => {
-    try {
-      const profiles = await queryAllProfile();
-      if (profiles && profiles.length > 0) {
-        setLeaderboardData(
-          profiles
-            .map((profile) => ({
-              id: profile.id.id,
-              name: profile.name,
-              amount: Number(profile.sendAmount),
-            }))
-            .sort((a, b) => b.amount - a.amount)
-        );
-      }
-    } catch (error) {
-      console.error("Error updating leaderboard:", error);
-    }
-  };
 
   const handleCreateWealthGod = async (coin: SuiCoin) => {
     if (!description.trim()) {
@@ -113,11 +105,7 @@ export default function SendRedEnvelope() {
         sender: account?.address,
       })
       .onSuccess(async (result) => {
-        setIsSending(false);
-        
-        // 更新排行榜数据
-        await updateLeaderboard();
-        
+        setIsSending(false);  // 重置发送状态
         showPopup(
           () => {
             console.log("Popup confirmed")
