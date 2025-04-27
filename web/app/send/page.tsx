@@ -61,6 +61,26 @@ export default function SendRedEnvelope() {
     }
   }, [account]) 
 
+  // 添加排行榜更新函数
+  const updateLeaderboard = async () => {
+    try {
+      const profiles = await queryAllProfile();
+      if (profiles && profiles.length > 0) {
+        setLeaderboardData(
+          profiles
+            .map((profile) => ({
+              id: profile.id.id,
+              name: profile.name,
+              amount: Number(profile.sendAmount),
+            }))
+            .sort((a, b) => b.amount - a.amount)
+        );
+      }
+    } catch (error) {
+      console.error("Error updating leaderboard:", error);
+    }
+  };
+
   const handleCreateWealthGod = async (coin: SuiCoin) => {
     if (!description.trim()) {
       showPopup(
@@ -93,7 +113,11 @@ export default function SendRedEnvelope() {
         sender: account?.address,
       })
       .onSuccess(async (result) => {
-        setIsSending(false);  // 重置发送状态
+        setIsSending(false);
+        
+        // 更新排行榜数据
+        await updateLeaderboard();
+        
         showPopup(
           () => {
             console.log("Popup confirmed")

@@ -44,13 +44,28 @@ export default function OpenRedEnvelope() {
           coin_type: coins[0]?.type,
         })
           .onSuccess(async () => {
+            // 获取最新数据
             const wealthGods = await getWealthGods();
-            getAllProfiles();
+            const profiles = await getAllProfiles();
+            
+            // 更新财富神列表
             setItems((prevItems) =>
               prevItems.map((item, idx) =>
                 idx === index ? { ...item, claimAmount: wealthGods[index].claimAmount, isclaimed: true } : item
               ),
             )
+            
+            // 更新排行榜数据
+            setLeaderboardData(
+              profiles
+                ?.map((profile) => ({
+                  id: profile.id.id,
+                  name: profile.name,
+                  amount: profile.claimAmount,
+                }))
+                .sort((a, b) => b.amount - a.amount)
+            );
+            
             showPopup(() => {}, () => {}, "Blessing claimed successfully! 🎉")
           })
           .onError((error) => {
