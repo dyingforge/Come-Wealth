@@ -27,6 +27,10 @@ export default function Profile() {
   })
 
   useEffect(() => {
+    getDisplayProfile();
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
       try {
@@ -63,7 +67,7 @@ export default function Profile() {
       useEffect(() => {
         setDisplayProfile(displayProfile)
         console.log("displayProfile 状态已更新:", displayProfile)
-        console.log(displayProfile?.sendAmount)
+        console.log(displayProfile)
       }, [displayProfile])
 
   const handleCreateProfile = async (name: string) => {

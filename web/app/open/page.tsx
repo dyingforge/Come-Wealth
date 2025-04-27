@@ -15,9 +15,10 @@ import Image from "next/image"
 import { useCurrentAccount } from "@mysten/dapp-kit"
 import { isValidSuiAddress } from "@mysten/sui/utils"
 import { ArrowLeft, Gift, Send, Trophy, User } from "lucide-react"
+import { get } from "node:http"
 
 export default function OpenRedEnvelope() {
-  const { getWealthGods, getDisplayProfile } = ContractsProvider()
+  const { getWealthGods, getDisplayProfile,getAllProfiles } = ContractsProvider()
   const account = useCurrentAccount()
   const { showPopup } = usePopup()
   const [items, setItems] = useState<WealthGodItem[]>([])
@@ -43,7 +44,8 @@ export default function OpenRedEnvelope() {
           coin_type: coins[0]?.type,
         })
           .onSuccess(async () => {
-            const wealthGods = await getWealthGods()
+            const wealthGods = await getWealthGods();
+            getAllProfiles();
             setItems((prevItems) =>
               prevItems.map((item, idx) =>
                 idx === index ? { ...item, claimAmount: wealthGods[index].claimAmount, isclaimed: true } : item
@@ -67,7 +69,7 @@ export default function OpenRedEnvelope() {
       setIsLoading(true)
       try {
         // Fetch profiles and wealth gods
-        const profiles = await queryAllProfile()
+        const profiles = await getAllProfiles()
         const wealthGods = await getWealthGods()
 
         // Filter unclaimed wealth gods and prepare leaderboard data

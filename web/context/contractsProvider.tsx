@@ -1,13 +1,14 @@
 "use client";
 
-import { queryProfile,queryState,queryWealthGods } from '@/contracts/query'
-import { DisplayProfile,WealthGod } from '@/type'
+import { queryProfile,queryState,queryWealthGods,queryAllProfile } from '@/contracts/query'
+import { DisplayProfile,WealthGod,Profile } from '@/type'
 import { useState } from "react";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 
 export function ContractsProvider() {
   const [hasProfile, setHasProfile] = useState(false);
   const [userProfile, setUserProfile] = useState<DisplayProfile>();
+  const [profiles, setProfiles] = useState<Profile[]>();
   const currentUser = useCurrentAccount();
 
 
@@ -36,7 +37,8 @@ export function ContractsProvider() {
                 sender: wealthGod.sender,
                 description: wealthGod.description,
                 isclaimed: wealthGod.isclaimed,
-                claimAmount: wealthGod.claimAmount,
+                 claimAmount: wealthGod.claimAmount,
+                send_amount: wealthGod.send_amount,
                 coin_type: wealthGod.coin_type,
                 coin: wealthGod.coin
               });
@@ -47,6 +49,12 @@ export function ContractsProvider() {
             return displayProfile as DisplayProfile;
         }
        
+      };
+
+      const getAllProfiles = async () => {
+        const allProfiles = await queryAllProfile();
+        setProfiles(allProfiles);
+        return allProfiles;
       };
  
 
@@ -63,8 +71,10 @@ export function ContractsProvider() {
 
   return {
     getDisplayProfile,
+    getAllProfiles,
     getWealthGods,
     hasProfile,
+    profiles,
     userProfile
   };
 }

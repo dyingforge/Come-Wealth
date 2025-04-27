@@ -30,10 +30,10 @@ const WealthGod: React.FC<WealthGodProps> = ({ items, handleOpen = () => {} }) =
               </h2>
               <h2
                 className={`text-[10px] font-DynaPuff ${
-                 ((item.claimAmount/1000000000) - 1 < 0 ? "text-green-600" : "text-red-600")
+                 (((item.claimAmount-item.send_amount)/1000000000) < 0 ? "text-green-600" : "text-red-600")
                 }`}
               >
-               profit: {(1 - (item.claimAmount/1000000000)).toFixed(2)}
+               profit: {(((item.claimAmount-item.send_amount)/1000000000)).toFixed(2)}
               </h2>
             </div>
           ) : (

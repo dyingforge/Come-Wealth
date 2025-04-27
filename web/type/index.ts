@@ -41,6 +41,7 @@ import { CoinMetadata } from '@mysten/sui/client';
       description: string;
       isclaimed: boolean;
       claimAmount: number;
+      send_amount: number;
       coin_type: {fields:{name:string}};
       coin?: WealthGodData;
   }
