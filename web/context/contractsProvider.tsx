@@ -68,7 +68,6 @@ export function ContractsProvider() {
 
   //查找当前用户的信息
 
-
   return {
     getDisplayProfile,
     getAllProfiles,

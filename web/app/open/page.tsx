@@ -16,7 +16,6 @@ import Image from "next/image"
 import { useCurrentAccount } from "@mysten/dapp-kit"
 import { isValidSuiAddress } from "@mysten/sui/utils"
 import { ArrowLeft, Gift, Send, Trophy, User } from "lucide-react"
-import { get } from "node:http"
 
 export default function OpenRedEnvelope() {
   const { getWealthGods, getDisplayProfile,getAllProfiles } = ContractsProvider()
@@ -25,7 +24,6 @@ export default function OpenRedEnvelope() {
   const { showPopup } = usePopup()
   const [items, setItems] = useState<WealthGodItem[]>([])
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([])
-  const [displayProfile, setDisplayProfile] = useState<DisplayProfile>()
   const [isLoading, setIsLoading] = useState(true)
   const { handleSignAndExecuteTransaction: claimWealthGod } = useBetterSignAndExecuteTransaction({
     tx: claimWealthGodTx,
@@ -33,6 +31,7 @@ export default function OpenRedEnvelope() {
 
   const handleClaimClick = async (index: number) => {
     try {
+
       const coins = await getUserProfileCoin(account?.address ?? "")
       const userProfile = await getDisplayProfile()
       const coin = coins.filter((coin) => coin.type.split('::').pop() === items[index].coin_type.fields.name.split('::').pop())
@@ -50,11 +49,11 @@ export default function OpenRedEnvelope() {
             // 获取最新数据
             const wealthGods = await getWealthGods();
             const profiles = await getAllProfiles();
-            
-            // 更新财富神列表
+
+            // 更新财富神列表和索取金额
             setItems((prevItems) =>
               prevItems.map((item, idx) =>
-                idx === index ? { ...item, claimAmount: wealthGods[index].claimAmount, isclaimed: true } : item
+                idx === index ? { ...item, claimAmount: wealthGods[index].claimAmount ,isclaimed:true} : item
               ),
             )
             
@@ -73,12 +72,24 @@ export default function OpenRedEnvelope() {
           })
           .onError((error) => {
             console.error("Error claiming blessing:", error)
+            // 如果交易失败，恢复红包状态为未打开
+            setItems((prevItems) =>
+              prevItems.map((item, idx) =>
+                idx === index ? { ...item, isclaimed: false } : item
+              ),
+            )
             showPopup(() => {}, () => {}, "Failed to claim blessing. Please try again.")
           })
           .execute()
       }
     } catch (error) {
       console.error("Error in handleClaimClick:", error)
+      // 发生错误时也恢复红包状态
+      setItems((prevItems) =>
+        prevItems.map((item, idx) =>
+          idx === index ? { ...item, isclaimed: false } : item
+        ),
+      )
     }
   }
 
@@ -124,6 +135,17 @@ export default function OpenRedEnvelope() {
   }, [account])
 
   const handleOpen = (index: number) => {
+    console.log("item isclaimed", items[index].isclaimed)
+    // 检查红包是否已被领取
+    if (items[index].isclaimed) {
+      showPopup(
+        () => {}, 
+        () => {}, 
+        "This blessing has already been claimed!"
+      )
+      return; // 终止后续操作
+    }
+    
     showPopup(
       () => {
         handleClaimClick(index)
@@ -196,7 +218,7 @@ export default function OpenRedEnvelope() {
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
                 </div>
               ) : items.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-wrap gap-4">
                   <WealthGod items={items} handleOpen={handleOpen} reverse={true} />
                 </div>
               ) : (
@@ -244,8 +266,9 @@ export default function OpenRedEnvelope() {
               )}
             </div>
           </div>
-        </div>
-      </div>
-    </main>
-  )
-}
+
+          {/* Leaderboard */}
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-red-100 p-4 border-b border-red-200">
+              <h2
+                className="text-red-600 text-lg font-semibold flex items-center gap-2"                style={{ fontFamily: "DynaPuff, cursive" }}              >                <Trophy size={20} /> Claim Leaderboard              </h2>            </div>            <div className="p-4">              {isLoading ? (                <div className="flex justify-center items-center h-64">                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>                </div>              ) : leaderboardData.length > 0 ? (                <Leaderboard items={leaderboardData} />              ) : (                <div className="text-center py-12 text-gray-500">                  <Trophy size={48} className="mx-auto mb-4 text-gray-300" />                  <p className="text-lg font-medium mb-2">No leaderboard data</p>                  <p>Leaderboard is empty or no claims have been made yet.</p>                </div>              )}            </div>          </div>        </div>      </div>    </main>  )}
