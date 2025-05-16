@@ -29,4 +29,4 @@ Hosting: Vercel
 MIT License
 
 📬 Contact
-Feel free to open issues, suggestions, or contact the team via GitHub or the site.
+Feel free to open issues, suggestions, or contact the team via GitHub or the site
